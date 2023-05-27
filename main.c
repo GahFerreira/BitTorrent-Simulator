@@ -6,7 +6,7 @@
 #include "info_usuario.h"
 #include "info_compartilhada.h"
 
-void inicializar_parametros_invocacao(int argc, char *argv[], unsigned *n_usuarios, unsigned *n_max_arquivos, unsigned *tam_fragmento, unsigned *tam_buffer)
+void obter_parametros_invocacao(const int argc, const char * const *argv, unsigned *n_usuarios, unsigned *n_max_arquivos, unsigned *tam_fragmento, unsigned *tam_buffer)
 {
     switch(argc)
     {
@@ -28,10 +28,10 @@ void inicializar_parametros_invocacao(int argc, char *argv[], unsigned *n_usuari
         {
             printf("Usando valores dos parametros:\n");
 
-            sscanf(argv[2], "%u", n_usuarios);
-            sscanf(argv[3], "%u", n_max_arquivos);
-            sscanf(argv[4], "%u", tam_fragmento);
-            sscanf(argv[5], "%u", tam_buffer);
+            sscanf(argv[1], "%u", n_usuarios);
+            sscanf(argv[2], "%u", n_max_arquivos);
+            sscanf(argv[3], "%u", tam_fragmento);
+            sscanf(argv[4], "%u", tam_buffer);
 
             break;
         }
@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 
     // Parâmetros de invocação.
     unsigned n_usuarios, n_max_arquivos, tam_fragmento, tam_buffer;
-    inicializar_parametros_invocacao(argc, argv, &n_usuarios, &n_max_arquivos, &tam_fragmento, &tam_buffer);
+    obter_parametros_invocacao(argc, (const char * const *) argv, &n_usuarios, &n_max_arquivos, &tam_fragmento, &tam_buffer);
 
     // Informações compartilhadas entre as threads.
     info_compartilhada_t compartilhado;
@@ -72,7 +72,6 @@ int main(int argc, char *argv[])
         printf("Criacao do usuario %d\n", i_usuario+1);
         pthread_create(&usuario[i_usuario], NULL, (void * (*)(void *)) iniciar_usuario, (void *) &compartilhado);
     }
-    printf("\n");
 
     // Espera todas as threads concluírem (necessário pois `compartilhado` é local da main).
     for (unsigned i_usuario = 0; i_usuario < n_usuarios; i_usuario++)
