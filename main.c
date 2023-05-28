@@ -1,9 +1,7 @@
 #include <stdio.h>
-#include <string.h>
 #include <pthread.h>
 
 #include "usuario.h"
-#include "info_usuario.h"
 #include "info_compartilhada.h"
 
 void obter_parametros_invocacao(const int argc, const char * const *argv, unsigned *n_usuarios, unsigned *n_max_arquivos, unsigned *tam_fragmento, unsigned *tam_buffer)

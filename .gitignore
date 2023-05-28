@@ -1,3 +1,6 @@
-*/*
-*.exe
-*.o
+*
+!.gitignore
+!readme.md
+!makefile
+!*.c
+!*.h

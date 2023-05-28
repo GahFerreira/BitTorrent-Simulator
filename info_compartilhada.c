@@ -25,17 +25,12 @@ void construir_info_compartilhada(info_compartilhada_t *informacoes_compartilhad
         informacoes_compartilhadas->id_arquivo_para_nome[i_arquivo] = NULL;
     }
 
+    // Inicializa a lista de mensagens de usuários conectados.
+    inicializar_lista_mensagem(&informacoes_compartilhadas->usuarios_conectados);
+
     // Instancia e inicializa o vetor de listas de solicitação de arquivos.
-    informacoes_compartilhadas->solicitacoes_arquivo = (lista_mensagem_t *) calloc(n_usuarios, sizeof(lista_mensagem_t));
-    for (unsigned i_usuario = 0; i_usuario < n_usuarios; i_usuario++)
-    {
-        inicializar_lista_mensagem(&informacoes_compartilhadas->solicitacoes_arquivo[i_usuario]);
-    }
+    inicializar_multiplas_listas_mensagem(&informacoes_compartilhadas->solicitacoes_arquivo, n_usuarios);
 
     // Instancia e inicializa o vetor de listas de conclusão de arquivos.
-    informacoes_compartilhadas->arquivo_completo = (lista_mensagem_t *) calloc(n_usuarios, sizeof(lista_mensagem_t));
-    for (unsigned i_usuario = 0; i_usuario < n_usuarios; i_usuario++)
-    {
-        inicializar_lista_mensagem(&informacoes_compartilhadas->arquivo_completo[i_usuario]);
-    }
+    inicializar_multiplas_listas_mensagem(&informacoes_compartilhadas->arquivo_completo, n_usuarios);
 }

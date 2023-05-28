@@ -23,6 +23,12 @@ struct info_compartilhada
     // nesta estrutura é 0-based (o 1º arquivo tem índice 0).
     char **id_arquivo_para_nome;
 
+    // Lista os usuários conectados.
+    lista_mensagem_t usuarios_conectados;
+
+    // `novo_usuario_conectado[x]` contém um inteiro y.
+    // Isso diz ao usuario 'x' que o usuário 'y' se conectou.
+    lista_mensagem_t *novo_usuario_conectado;
     // `solicitacoes_arquivo[x]` conterá um par `<y, arq_id>.`
     // Isso diz que o usuário 'y' pede ao usuário 'x' pelo arquivo cujo id é `arq_id`.
     lista_mensagem_t *solicitacoes_arquivo;
