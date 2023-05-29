@@ -12,6 +12,9 @@ bool inicializar_usuario(info_usuario_t *informacoes_usuario, const info_compart
 
 void finalizar_usuario(info_usuario_t *minhas_informacoes, manipulador_arquivos_t *manipulador_arquivos);
 
+// Avisa a todos os outros usuários que o usuário invocador desta função está conectado.
+void conectar_usuario(const info_usuario_t *informacoes_usuario, info_compartilhada_t *compartilhado);
+
 // Funções de Utilidade
 
 // Assume que destino tenha a capacidade necessária para guardar o nome calculado.

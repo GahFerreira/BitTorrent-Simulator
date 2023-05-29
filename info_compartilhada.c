@@ -28,6 +28,9 @@ void construir_info_compartilhada(info_compartilhada_t *informacoes_compartilhad
     // Inicializa a lista de mensagens de usuários conectados.
     inicializar_lista_mensagem(&informacoes_compartilhadas->usuarios_conectados);
 
+    // Instancia e inicializa o vetor de listas de mensagens de conexão de novos usuários.
+    inicializar_multiplas_listas_mensagem(&informacoes_compartilhadas->novo_usuario_conectado, n_usuarios);
+
     // Instancia e inicializa o vetor de listas de solicitação de arquivos.
     inicializar_multiplas_listas_mensagem(&informacoes_compartilhadas->solicitacoes_arquivo, n_usuarios);
 

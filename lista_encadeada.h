@@ -16,19 +16,34 @@ typedef struct lista_encadeada lista_encadeada_t;
 struct no
 {
     no_t *proximo;
-    void *dado;
+    const void *dado;
 };
 
 struct lista_encadeada
 {
     no_t *primeiro;
     no_t *ultimo;
+    unsigned tamanho;
 };
 
-void inicializar_no(no_t *no, void *dado);
+void inicializar_no(no_t *no, const void *dado);
 void inicializar_lista_encadeada(lista_encadeada_t *lista_encadeada);
+
 bool esta_vazia_lista_encadeada(lista_encadeada_t *lista_encadeada);
-void adicionar_elemento_lista_encadeada(lista_encadeada_t *lista_encadeada, void *elemento);
-bool remover_elemento_lista_encadeada(lista_encadeada_t *lista_encadeada, void *elemento, bool (funcao_comparacao) (void *, void *));
+void adicionar_elemento_lista_encadeada(lista_encadeada_t *lista_encadeada, const void *elemento);
+bool remover_elemento_lista_encadeada(lista_encadeada_t *lista_encadeada, const void *elemento, bool (funcao_comparacao) (const void *, const void *));
+
+/*
+Obtém todos os dados da lista encadeada e os coloca no vetor `destino`.
+Presume que `destino` tenha a capacidade necessária para receber os dados da lista.
+
+Contra-intuitivamente, apesar de `destino` ser `const`, o vetor apontado por `destino` não é
+`const`: assim, é possível mudar o valor dos elementos de `destino`, mas não para onde
+aponta `destino`.
+
+Para não ser possível mudar os elementos apontados por destino, o tipo deveria ser algo como:
+[const void * const *].
+*/
+void obter_dados_lista_encadeada(lista_encadeada_t *lista_encadeada, const void **destino);
 
 #endif // LISTA_ENCADEADA_H

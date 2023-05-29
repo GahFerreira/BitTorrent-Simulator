@@ -10,7 +10,7 @@
 
 void *iniciar_usuario(info_compartilhada_t *compartilhado)
 {
-    printf("Usuario %d - Parte 1\n", (unsigned) pthread_self());
+    // printf("Usuario %d - Parte 1\n", (unsigned) pthread_self());
     /// PARTE 1: Inicializações de estruturas de dados.
 
     info_usuario_t minhas_informacoes;
@@ -23,28 +23,30 @@ void *iniciar_usuario(info_compartilhada_t *compartilhado)
         pthread_exit(NULL);
     }
 
-    printf("Usuario %d - Parte 2\n", (unsigned) pthread_self());
+    // printf("Usuario %u - Parte 2\n", (unsigned) pthread_self());
     /// PARTE 2: Avisa que se conectou aos outros usuários.
+    conectar_usuario(&minhas_informacoes, compartilhado);
 
-    adicionar_elemento_lista_mensagens(&compartilhado->usuarios_conectados, &minhas_informacoes.id_usuario);
-
-    printf("Usuario %d - Parte 3\n", (unsigned) pthread_self());
+    // printf("Usuario %u - Passou pela conexao\n", (unsigned) pthread_self());
 
     // TESTE
     pthread_mutex_lock(&compartilhado->usuarios_conectados.mutex_mensagem);
-    printf("Usuario %u - Lista conectados:\n", minhas_informacoes.id_usuario+1);
-    no_t aux = *compartilhado->usuarios_conectados.mensagens.primeiro;
+    // printf("Usuario %u - Lista conectados:\n", minhas_informacoes.id_usuario+1);
+    no_t *aux = compartilhado->usuarios_conectados.mensagens.primeiro;
+    // printf("Usuario %u - %u usuarios conectados\n", minhas_informacoes.id_usuario+1, compartilhado->usuarios_conectados.mensagens.tamanho);
     while (true)
     {
-        printf("\t{%u}\n", *((unsigned *) aux.dado));
-        if (aux.proximo == NULL) break;
-        aux = *aux.proximo;
+        printf("\t{%u}\n", *((const unsigned *) aux->dado));
+        if (aux->proximo == NULL) break;
+        aux = aux->proximo;
     }
     printf("\n");
-    printf("Fim da lista\n");
     pthread_mutex_unlock(&compartilhado->usuarios_conectados.mutex_mensagem);
 
-    remover_elemento_lista_mensagens(&compartilhado->usuarios_conectados, &minhas_informacoes.id_usuario, (bool (*) (void *, void *)) comparar_unsigned);
+    _sleep(3000);
+
+    // Usuário remove a sua conexão do programa.
+    remover_elemento_lista_mensagens(&compartilhado->usuarios_conectados, &minhas_informacoes.id_usuario, (bool (*) (const void *, const void *)) comparar_unsigned);
 
     /// PARTE X: Destruir estruturas de dados.
     //finalizar_usuario(&minhas_informacoes, &manipulador_arquivos);
@@ -79,6 +81,50 @@ bool inicializar_usuario(info_usuario_t *informacoes_usuario, const info_compart
 // {
 
 // }
+
+// A implementação usa diretamente as funções de lista encadeada, pois precisa travar
+// o mutex para realizar muitas operações.
+void conectar_usuario(const info_usuario_t *informacoes_usuario, info_compartilhada_t *compartilhado)
+{
+    // printf("Usuario %u - Inicio da conexao\n", informacoes_usuario->id_usuario+1);
+
+    // Inicialmente, obtém o lock da lista de usuários conectados para obter os seus dados
+    // e se incluir nela posteriormente.
+
+    // printf("Usuario %u - 1\n", informacoes_usuario->id_usuario+1);
+    // LOCK
+    pthread_mutex_lock(&compartilhado->usuarios_conectados.mutex_mensagem);
+
+    // printf("Usuario %u - Obteve o lock\n", informacoes_usuario->id_usuario+1);
+    
+    // printf("Usuario %u - 2\n", informacoes_usuario->id_usuario+1);
+    unsigned n_conectados = compartilhado->usuarios_conectados.mensagens.tamanho;
+    unsigned *usuarios_conectados[n_conectados];
+
+    // printf("Usuario %u - 3\n", informacoes_usuario->id_usuario+1);
+    obter_dados_lista_encadeada(&compartilhado->usuarios_conectados.mensagens, (const void **) &usuarios_conectados);
+
+    // printf("Usuario %u - 4\n", informacoes_usuario->id_usuario+1);
+    adicionar_elemento_lista_encadeada(&compartilhado->usuarios_conectados.mensagens, &informacoes_usuario->id_usuario);
+
+    // printf("Usuario %u - Concedeu o lock\n", informacoes_usuario->id_usuario+1);
+    // printf("Usuario %u - 5\n", informacoes_usuario->id_usuario+1);
+    pthread_mutex_unlock(&compartilhado->usuarios_conectados.mutex_mensagem);
+    // UNLOCK
+    // Posteriormente, fora do lock da lista compartilhada, trata o envio de mensagens
+    // aos outros usuários, usando o lock de cada lista individual.
+    for (unsigned i_conectado = 0; i_conectado < n_conectados; i_conectado++)
+    {
+        // printf("Usuario %u - Entra no for\n", informacoes_usuario->id_usuario+1);
+        unsigned usuario_atual = *usuarios_conectados[i_conectado];
+        //printf("Usuario %u - Tenta mandar mensagem ao usuario %u\n", informacoes_usuario->id_usuario+1, usuario_atual+1);
+        
+        adicionar_elemento_lista_mensagens(&compartilhado->novo_usuario_conectado[usuario_atual], &informacoes_usuario->id_usuario);
+
+        //printf("Usuario %u - Termina de mandar mensagem ao usuario %u\n", informacoes_usuario->id_usuario+1, usuario_atual+1);
+    }
+    //printf("Usuario %u - Fim da Funcao conectar_usuario\n", informacoes_usuario->id_usuario+1);
+}
 
 void id_usuario_para_nome_diretorio(char *destino, const unsigned id_usuario)
 {

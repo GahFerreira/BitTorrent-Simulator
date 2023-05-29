@@ -3,7 +3,7 @@
 
 #include "lista_encadeada.h"
 
-void inicializar_no(no_t *no, void *dado)
+void inicializar_no(no_t *no, const void *dado)
 {
     no->proximo = NULL;
     no->dado = dado;
@@ -13,15 +13,16 @@ void inicializar_lista_encadeada(lista_encadeada_t *lista_encadeada)
 {
     lista_encadeada->primeiro = NULL;
     lista_encadeada->ultimo = NULL;
+    lista_encadeada->tamanho = 0;
 }
 
 bool esta_vazia_lista_encadeada(lista_encadeada_t *lista_encadeada)
 {
-    if (lista_encadeada->primeiro == NULL) return true;
+    if (lista_encadeada->tamanho == 0) return true;
     return false;
 }
 
-void adicionar_elemento_lista_encadeada(lista_encadeada_t *lista_encadeada, void *elemento)
+void adicionar_elemento_lista_encadeada(lista_encadeada_t *lista_encadeada, const void *elemento)
 {
     no_t *novo_no = (no_t *) calloc(1, sizeof(no_t));
     inicializar_no(novo_no, elemento);
@@ -37,10 +38,11 @@ void adicionar_elemento_lista_encadeada(lista_encadeada_t *lista_encadeada, void
     }
 
     lista_encadeada->ultimo = novo_no;
+    lista_encadeada->tamanho++;
 }
 
 // Retorna `true` se a remoção foi feita com sucesso, e `false` caso contrário.
-bool remover_elemento_lista_encadeada(lista_encadeada_t *lista_encadeada, void *elemento, bool (funcao_comparacao) (void *, void *))
+bool remover_elemento_lista_encadeada(lista_encadeada_t *lista_encadeada, const void *elemento, bool (funcao_comparacao) (const void *, const void *))
 {
     if (esta_vazia_lista_encadeada(lista_encadeada) == true) return false;
 
@@ -74,6 +76,7 @@ bool remover_elemento_lista_encadeada(lista_encadeada_t *lista_encadeada, void *
             else anterior->proximo = atual->proximo;
 
             free(atual);
+            lista_encadeada->tamanho--;
 
             return true;
         }
@@ -83,5 +86,21 @@ bool remover_elemento_lista_encadeada(lista_encadeada_t *lista_encadeada, void *
 
         anterior = atual;
         atual = atual->proximo;
+    }
+}
+
+void obter_dados_lista_encadeada(lista_encadeada_t *lista_encadeada, const void **destino)
+{
+    if (esta_vazia_lista_encadeada(lista_encadeada) == true) return;
+
+    no_t *atual = lista_encadeada->primeiro;
+    int i_no = 0;
+    while (true)
+    {
+        destino[i_no] = atual->dado;
+
+        if (atual->proximo == NULL) break;
+        atual = atual->proximo;
+        i_no++;
     }
 }

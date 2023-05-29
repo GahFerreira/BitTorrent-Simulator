@@ -12,7 +12,7 @@ void inicializar_lista_mensagem(lista_mensagem_t *lista_mensagem)
     lista_mensagem->mutex_mensagem = PTHREAD_MUTEX_INITIALIZER;
 }
 
-void inicializar_multiplas_listas_mensagem(lista_mensagem_t **listas_mensagem, unsigned n_listas_mensagem)
+void inicializar_multiplas_listas_mensagem(lista_mensagem_t **listas_mensagem, const unsigned n_listas_mensagem)
 {
     *listas_mensagem = (lista_mensagem_t *) calloc(n_listas_mensagem,sizeof(lista_mensagem_t));
 
@@ -22,7 +22,7 @@ void inicializar_multiplas_listas_mensagem(lista_mensagem_t **listas_mensagem, u
     }
 }
 
-void adicionar_elemento_lista_mensagens(lista_mensagem_t *lista_mensagem, void *elemento)
+void adicionar_elemento_lista_mensagens(lista_mensagem_t *lista_mensagem, const void *elemento)
 {
     pthread_mutex_lock(&lista_mensagem->mutex_mensagem);
 
@@ -31,20 +31,18 @@ void adicionar_elemento_lista_mensagens(lista_mensagem_t *lista_mensagem, void *
     pthread_mutex_unlock(&lista_mensagem->mutex_mensagem);
 }
 
-bool remover_elemento_lista_mensagens(lista_mensagem_t *lista_mensagem, void *elemento, bool (funcao_comparacao) (void *, void *))
+bool remover_elemento_lista_mensagens(lista_mensagem_t *lista_mensagem, const void *elemento, bool (funcao_comparacao) (const void *, const void *))
 {
+    bool resultado;
+
     pthread_mutex_lock(&lista_mensagem->mutex_mensagem);
 
-    bool resultado = remover_elemento_lista_encadeada(&lista_mensagem->mensagens, elemento, funcao_comparacao);
+    resultado = remover_elemento_lista_encadeada(&lista_mensagem->mensagens, elemento, funcao_comparacao);
 
     pthread_mutex_unlock(&lista_mensagem->mutex_mensagem);
 
-    if (resultado == false)
-    {
-        printf("\nAVISO: Falha em remover elemento de lista de mensagens.\n\n");
+    // Fora do lock pois não afeta o estado de `lista_mensagem`.
+    if (!resultado) printf("\nAVISO: Falha em remover elemento de lista de mensagens.\n\n");
 
-        return false;
-    }
-
-    return true;
+    return resultado;
 }
