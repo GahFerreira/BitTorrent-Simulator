@@ -10,9 +10,7 @@
 
 void *iniciar_usuario(info_compartilhada_t *compartilhado)
 {
-    // printf("Usuario %d - Parte 1\n", (unsigned) pthread_self());
-    /// PARTE 1: Inicializações de estruturas de dados.
-
+    /* PARTE 1: Inicializações de estruturas de dados. */
     info_usuario_t minhas_informacoes;
     manipulador_arquivos_t manipulador_arquivos;
 
@@ -23,25 +21,10 @@ void *iniciar_usuario(info_compartilhada_t *compartilhado)
         pthread_exit(NULL);
     }
 
-    // printf("Usuario %u - Parte 2\n", (unsigned) pthread_self());
-    /// PARTE 2: Avisa que se conectou aos outros usuários.
+    /* PARTE 2: Realiza os procedimentos de conexão. */
     conectar_usuario(&minhas_informacoes, compartilhado);
 
-    // printf("Usuario %u - Passou pela conexao\n", (unsigned) pthread_self());
-
-    // TESTE
-    pthread_mutex_lock(&compartilhado->usuarios_conectados.mutex_mensagem);
-    // printf("Usuario %u - Lista conectados:\n", minhas_informacoes.id_usuario+1);
-    no_t *aux = compartilhado->usuarios_conectados.mensagens.primeiro;
-    // printf("Usuario %u - %u usuarios conectados\n", minhas_informacoes.id_usuario+1, compartilhado->usuarios_conectados.mensagens.tamanho);
-    while (true)
-    {
-        printf("\t{%u}\n", *((const unsigned *) aux->dado));
-        if (aux->proximo == NULL) break;
-        aux = aux->proximo;
-    }
-    printf("\n");
-    pthread_mutex_unlock(&compartilhado->usuarios_conectados.mutex_mensagem);
+    /* PARTE 3: Inicia a rotina principal. */
 
     _sleep(3000);
 
@@ -59,7 +42,7 @@ bool inicializar_usuario(info_usuario_t *informacoes_usuario, const info_compart
 {
     construir_info_usuario(informacoes_usuario, (unsigned) pthread_self()-1, compartilhado->n_arquivos);
 
-    // Novo escopo temporário para evitar múltiplas alocações dinâmicas.
+    // Novo escopo temporário para evitar mais uma alocação dinâmica.
     {
         char nome_diretorio[compartilhado->max_caracteres_dir_usuario];
         id_usuario_para_nome_diretorio(nome_diretorio, informacoes_usuario->id_usuario);
@@ -82,49 +65,54 @@ bool inicializar_usuario(info_usuario_t *informacoes_usuario, const info_compart
 
 // }
 
-// A implementação usa diretamente as funções de lista encadeada, pois precisa travar
-// o mutex para realizar muitas operações.
+/* 
+  A implementação usa diretamente as funções de lista encadeada, pois precisa travar
+  o mutex para realizar muitas operações.
+*/
 void conectar_usuario(const info_usuario_t *informacoes_usuario, info_compartilhada_t *compartilhado)
 {
-    // printf("Usuario %u - Inicio da conexao\n", informacoes_usuario->id_usuario+1);
+    /* 
+      Inicialmente, obtém o lock da lista de usuários conectados 
+      para obter os seus dados e se incluir nela posteriormente. 
+    */
 
-    // Inicialmente, obtém o lock da lista de usuários conectados para obter os seus dados
-    // e se incluir nela posteriormente.
-
-    // printf("Usuario %u - 1\n", informacoes_usuario->id_usuario+1);
     // LOCK
     pthread_mutex_lock(&compartilhado->usuarios_conectados.mutex_mensagem);
 
-    // printf("Usuario %u - Obteve o lock\n", informacoes_usuario->id_usuario+1);
-    
-    // printf("Usuario %u - 2\n", informacoes_usuario->id_usuario+1);
     unsigned n_conectados = compartilhado->usuarios_conectados.mensagens.tamanho;
+
+    /*  
+      Vetor de ponteiros para unsigned. 
+      Após sua inicialização, cada posição apontará para o id de um usuário conectado.
+    */
     unsigned *usuarios_conectados[n_conectados];
 
-    // printf("Usuario %u - 3\n", informacoes_usuario->id_usuario+1);
     obter_dados_lista_encadeada(&compartilhado->usuarios_conectados.mensagens, (const void **) &usuarios_conectados);
 
-    // printf("Usuario %u - 4\n", informacoes_usuario->id_usuario+1);
+    // O usuário adiciona a si próprio na lista compartilhada de usuários conectados.
     adicionar_elemento_lista_encadeada(&compartilhado->usuarios_conectados.mensagens, &informacoes_usuario->id_usuario);
 
-    // printf("Usuario %u - Concedeu o lock\n", informacoes_usuario->id_usuario+1);
-    // printf("Usuario %u - 5\n", informacoes_usuario->id_usuario+1);
     pthread_mutex_unlock(&compartilhado->usuarios_conectados.mutex_mensagem);
     // UNLOCK
-    // Posteriormente, fora do lock da lista compartilhada, trata o envio de mensagens
-    // aos outros usuários, usando o lock de cada lista individual.
-    for (unsigned i_conectado = 0; i_conectado < n_conectados; i_conectado++)
-    {
-        // printf("Usuario %u - Entra no for\n", informacoes_usuario->id_usuario+1);
-        unsigned usuario_atual = *usuarios_conectados[i_conectado];
-        //printf("Usuario %u - Tenta mandar mensagem ao usuario %u\n", informacoes_usuario->id_usuario+1, usuario_atual+1);
-        
-        adicionar_elemento_lista_mensagens(&compartilhado->novo_usuario_conectado[usuario_atual], &informacoes_usuario->id_usuario);
 
-        //printf("Usuario %u - Termina de mandar mensagem ao usuario %u\n", informacoes_usuario->id_usuario+1, usuario_atual+1);
-    }
-    //printf("Usuario %u - Fim da Funcao conectar_usuario\n", informacoes_usuario->id_usuario+1);
+    /* 
+      Posteriormente, fora do lock da lista compartilhada, trata o envio
+      de mensagens aos outros usuários usando o lock de cada lista individual.
+    */
+    for (unsigned i_conectado = 0; i_conectado < n_conectados; ++i_conectado)
+    {
+        // Obtém o id de um dos usuários conectados.
+        unsigned usuario_atual = *usuarios_conectados[i_conectado];
+        
+        /* 
+          O usuário envia mensagem a esse usuário conectado, 
+          dizendo que agora também está conectado. 
+        */
+        adicionar_elemento_lista_mensagens(&compartilhado->novo_usuario_conectado[usuario_atual], &informacoes_usuario->id_usuario);
+    }    
 }
+
+// Funções de utilidade.
 
 void id_usuario_para_nome_diretorio(char *destino, const unsigned id_usuario)
 {
@@ -136,11 +124,11 @@ unsigned nome_arquivo_para_id(const char nome_arquivo[])
     unsigned pos_ponto;
 
     // A primeira possível posição para o ponto é o 5o caractere do vetor.
-    for (pos_ponto = 5; nome_arquivo[pos_ponto] != '.'; pos_ponto++);
+    for (pos_ponto = 5; nome_arquivo[pos_ponto] != '.'; ++pos_ponto);
 
     // Converte 'X' de char[] para unsigned.
     unsigned retorno = 0;
-    for (unsigned at = 4; at < pos_ponto; at++)
+    for (unsigned at = 4; at < pos_ponto; ++at)
     {
         retorno = retorno * 10 + ((unsigned) nome_arquivo[at] - '0');
     }

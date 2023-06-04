@@ -1,33 +1,61 @@
-CXX = gcc
-CXX_FLAGS_ALL = -Wall -Wextra -pedantic -std=c11 -O3 -Wshadow -Wformat=2 -Wfloat-equal -Wconversion -Wlogical-op -Wshift-overflow=2 -Wduplicated-cond -Wcast-qual -Wcast-align -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC -D_FORTIFY_SOURCE=2 -fno-sanitize-recover -fstack-protector -g
-CXX_FLAGS = $(CXX_FLAGS_ALL) -c
+# Variáveis
+COMPILADOR_C = gcc
+COMPILADOR_CPP = g++
 
-all: main.o usuario.o info_usuario.o info_compartilhada.o lista_mensagem.o lista_encadeada.o manipulador_arquivos.o util.o
-	$(CXX) $(CXX_FLAGS_ALL) main.o usuario.o info_usuario.o info_compartilhada.o lista_mensagem.o lista_encadeada.o manipulador_arquivos.o util.o -o simulador.exe
+VERSAO_C = -std=c17
+VERSAO_CPP = -std=c++20
+
+FLAGS_C = -Wstrict-prototypes
+FLAGS_CPP = 
+
+FLAGS_BASICAS = -Wall -Wextra -pedantic -O3
+
+FLAGS_REGULARES = -Waggregate-return -Wcast-align -Wcast-qual -Wconversion -Wduplicated-cond -Wfloat-equal -Wformat=2 -Winit-self -Wlogical-op -Wpointer-arith -Wshadow -Wshift-overflow=2 -Wstrict-overflow=5 -Wswitch-default -Wswitch-enum -Wundef -Wunreachable-code -Wwrite-strings
+
+FLAGS_EXTRAS = -g -D_GLIBCOMPILADOR_DEBUG -D_GLIBCOMPILADOR_DEBUG_PEDANTIC -D_FORTIFY_SOURCE=2 -fno-sanitize-recover -fstack-protector
+
+FLAGS = $(FLAGS_BASICAS) $(FLAGS_REGULARES) $(FLAGS_EXTRAS)
+
+TODOS_PONTO_O = util.o lista_encadeada.o lista_mensagem.o manipulador_arquivos.o info_compartilhada.o info_usuario.o usuario.o main.o
+
+# Regras
+
+all: COMPILADOR = $(COMPILADOR_C)
+all: FLAGS_BASICAS += $(VERSAO_C)
+all: FLAGS += $(FLAGS_C)
+all: $(TODOS_PONTO_O)
+	$(COMPILADOR) $(FLAGS) $(TODOS_PONTO_O) -o simulador.exe
+
+teste: COMPILADOR = $(COMPILADOR_CPP) 
+teste: FLAGS_BASICAS += $(VERSAO_CPP)
+teste: FLAGS += $(FLAGS_CPP)
+teste: $(TODOS_PONTO_O)
+	$(COMPILADOR) $(FLAGS) $(TODOS_PONTO_O) -o simulador.exe
+	$(MAKE) clean
 
 main.o: main.c
-	$(CXX) $(CXX_FLAGS) main.c
+	$(COMPILADOR) $(FLAGS) -c main.c
 
 usuario.o: usuario.c usuario.h
-	$(CXX) $(CXX_FLAGS) usuario.c
+	$(COMPILADOR) $(FLAGS) -c usuario.c
 
 info_usuario.o: info_usuario.c info_usuario.h
-	$(CXX) $(CXX_FLAGS) info_usuario.c
+	$(COMPILADOR) $(FLAGS) -c info_usuario.c
 
 info_compartilhada.o: info_compartilhada.c info_compartilhada.h
-	$(CXX) $(CXX_FLAGS) info_compartilhada.c
+	$(COMPILADOR) $(FLAGS) -c info_compartilhada.c
 
 lista_mensagem.o: lista_mensagem.c lista_mensagem.h
-	$(CXX) $(CXX_FLAGS) lista_mensagem.c
+	$(COMPILADOR) $(FLAGS) -c lista_mensagem.c
 
 lista_encadeada.o: lista_encadeada.c lista_encadeada.h
-	$(CXX) $(CXX_FLAGS) lista_encadeada.c
+	$(COMPILADOR) $(FLAGS) -c lista_encadeada.c
 
 manipulador_arquivos.o: manipulador_arquivos.c manipulador_arquivos.h
-	$(CXX) $(CXX_FLAGS) manipulador_arquivos.c
+	$(COMPILADOR) $(FLAGS) -c manipulador_arquivos.c
 
 util.o: util.c util.h
-	$(CXX) $(CXX_FLAGS) util.c
+	$(COMPILADOR) $(FLAGS) -c util.c
 
 clean:
-	rm *.o *.exe *.txt
+	rm *.o *.exe

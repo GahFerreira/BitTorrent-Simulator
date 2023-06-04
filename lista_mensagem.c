@@ -14,9 +14,9 @@ void inicializar_lista_mensagem(lista_mensagem_t *lista_mensagem)
 
 void inicializar_multiplas_listas_mensagem(lista_mensagem_t **listas_mensagem, const unsigned n_listas_mensagem)
 {
-    *listas_mensagem = (lista_mensagem_t *) calloc(n_listas_mensagem,sizeof(lista_mensagem_t));
+    *listas_mensagem = (lista_mensagem_t *) calloc(n_listas_mensagem, sizeof(lista_mensagem_t));
 
-    for (unsigned i_lista = 0; i_lista < n_listas_mensagem; i_lista++)
+    for (unsigned i_lista = 0; i_lista < n_listas_mensagem; ++i_lista)
     {
         inicializar_lista_mensagem(&(*listas_mensagem)[i_lista]);
     }

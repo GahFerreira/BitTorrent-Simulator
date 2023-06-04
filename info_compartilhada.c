@@ -12,18 +12,11 @@ void construir_info_compartilhada(info_compartilhada_t *informacoes_compartilhad
     unsigned aux = n_usuarios;
     while (aux > 0) 
     {
-        max_caracteres_dir_usuario++;
+        ++max_caracteres_dir_usuario;
         aux /= 10;
     }
     // `+3` pois inclui os outros caracteres do diretório: "./U{numero_usuario}"
     informacoes_compartilhadas->max_caracteres_dir_usuario = max_caracteres_dir_usuario+3;
-
-    // Inicia o mapa de `id_arquivo` para `nome_arquivo`.
-    informacoes_compartilhadas->id_arquivo_para_nome = (char **) calloc(n_arquivos, sizeof(char *));
-    for (unsigned i_arquivo = 0; i_arquivo < n_arquivos; i_arquivo++)
-    {
-        informacoes_compartilhadas->id_arquivo_para_nome[i_arquivo] = NULL;
-    }
 
     // Inicializa a lista de mensagens de usuários conectados.
     inicializar_lista_mensagem(&informacoes_compartilhadas->usuarios_conectados);

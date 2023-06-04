@@ -17,12 +17,6 @@ struct info_compartilhada
     // Usado para instanciar nomes de diretórios de usuários corretamente.
     unsigned max_caracteres_dir_usuario;
 
-    // Útil para que todos os usuários obtenham todos os arquivos.
-    // `id_arquivo_para_nome[x]` possui o nome do arquivo cujo id é 'x'.
-    // Nota: apesar do nome dos arquivos ser 1-based, a representação
-    // nesta estrutura é 0-based (o 1º arquivo tem índice 0).
-    char **id_arquivo_para_nome;
-
     // Lista os usuários conectados.
     lista_mensagem_t usuarios_conectados;
 

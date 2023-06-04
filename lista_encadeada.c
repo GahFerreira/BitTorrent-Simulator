@@ -38,7 +38,7 @@ void adicionar_elemento_lista_encadeada(lista_encadeada_t *lista_encadeada, cons
     }
 
     lista_encadeada->ultimo = novo_no;
-    lista_encadeada->tamanho++;
+    ++lista_encadeada->tamanho;
 }
 
 // Retorna `true` se a remoção foi feita com sucesso, e `false` caso contrário.
@@ -94,13 +94,13 @@ void obter_dados_lista_encadeada(lista_encadeada_t *lista_encadeada, const void 
     if (esta_vazia_lista_encadeada(lista_encadeada) == true) return;
 
     no_t *atual = lista_encadeada->primeiro;
-    int i_no = 0;
+    unsigned i_no = 0;
     while (true)
     {
         destino[i_no] = atual->dado;
 
         if (atual->proximo == NULL) break;
         atual = atual->proximo;
-        i_no++;
+        ++i_no;
     }
 }

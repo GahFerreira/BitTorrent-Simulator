@@ -65,14 +65,14 @@ int main(int argc, char *argv[])
     pthread_t usuario[n_usuarios];
 
     // Inicia as threads.
-    for (unsigned i_usuario = 0; i_usuario < n_usuarios; i_usuario++)
+    for (unsigned i_usuario = 0; i_usuario < n_usuarios; ++i_usuario)
     {
         printf("Criacao do usuario %d\n", i_usuario+1);
         pthread_create(&usuario[i_usuario], NULL, (void * (*)(void *)) iniciar_usuario, (void *) &compartilhado);
     }
 
     // Espera todas as threads concluírem (necessário pois `compartilhado` é local da main).
-    for (unsigned i_usuario = 0; i_usuario < n_usuarios; i_usuario++)
+    for (unsigned i_usuario = 0; i_usuario < n_usuarios; ++i_usuario)
     {
         pthread_join(usuario[i_usuario], NULL);
         printf("Usuario %d terminou\n", i_usuario+1);
