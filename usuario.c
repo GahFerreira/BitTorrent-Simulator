@@ -7,6 +7,7 @@
 #include "info_usuario.h"
 #include "manipulador_arquivos.h"
 #include "util.h"
+#include "processamento_mensagens.h"
 
 void *iniciar_usuario(info_compartilhada_t *compartilhado)
 {
@@ -26,10 +27,19 @@ void *iniciar_usuario(info_compartilhada_t *compartilhado)
 
     /* PARTE 3: Inicia a rotina principal. */
 
+    info_total_t info_total;
+    info_total.info_compartilhada = compartilhado;
+    info_total.info_usuario = &minhas_informacoes;
+
+    pthread_t processar_mensagens;// solicitar_arquivos, salvar_em_disco, enviar_fragmentos;
+
+    pthread_create(&processar_mensagens, NULL, (void * (*) (void *)) processar_mensagens_recebidas, (void *) &info_total);
+    pthread_join(processar_mensagens, NULL);
+
     _sleep(3000);
 
     // Usuário remove a sua conexão do programa.
-    remover_elemento_lista_mensagens(&compartilhado->usuarios_conectados, &minhas_informacoes.id_usuario, (bool (*) (const void *, const void *)) comparar_unsigned);
+    extrair_elemento_lista_mensagens(&compartilhado->usuarios_conectados, &minhas_informacoes.id_usuario, (bool (*) (const void *, const void *)) comparar_unsigned);
 
     /// PARTE X: Destruir estruturas de dados.
     //finalizar_usuario(&minhas_informacoes, &manipulador_arquivos);
@@ -50,9 +60,9 @@ bool inicializar_usuario(info_usuario_t *informacoes_usuario, const info_compart
         construir_manipulador_arquivos(manipulador_arquivos, nome_diretorio, compartilhado->max_caracteres_dir_usuario);
     }
 
-    if (!inicializar_lista_arquivos(informacoes_usuario->lista_arquivos, nome_arquivo_para_id, manipulador_arquivos))
+    if (!inicializar_info_arquivos(&informacoes_usuario->info_arquivos, nome_arquivo_para_id, manipulador_arquivos))
     {
-        printf("\nERRO: Falha em inicializar lista de arquivos do usuario %u. [usuario::inicializar_usuario]\n\n", informacoes_usuario->id_usuario+1);
+        printf("\nERRO: Falha em inicializar estados de arquivos do usuario %u. [usuario::inicializar_usuario]\n\n", informacoes_usuario->id_usuario+1);
 
         return false;
     }
@@ -71,9 +81,13 @@ bool inicializar_usuario(info_usuario_t *informacoes_usuario, const info_compart
 */
 void conectar_usuario(const info_usuario_t *informacoes_usuario, info_compartilhada_t *compartilhado)
 {
+    #ifdef DEBUG
+    printf("\nDEBUG: Inicio da conexao do usuario %d\n", informacoes_usuario->id_usuario+1);
+    #endif
+
     /* 
       Inicialmente, obtém o lock da lista de usuários conectados 
-      para obter os seus dados e se incluir nela posteriormente. 
+      para descobrir quem está conectado e se incluir na lista. 
     */
 
     // LOCK
@@ -92,6 +106,10 @@ void conectar_usuario(const info_usuario_t *informacoes_usuario, info_compartilh
     // O usuário adiciona a si próprio na lista compartilhada de usuários conectados.
     adicionar_elemento_lista_encadeada(&compartilhado->usuarios_conectados.mensagens, &informacoes_usuario->id_usuario);
 
+    #ifdef DEBUG
+    printf("\nDEBUG: Usuario %d parcialmente conectado. Enviando solicitacoes de arquivos.\n", informacoes_usuario->id_usuario+1);
+    #endif
+
     pthread_mutex_unlock(&compartilhado->usuarios_conectados.mutex_mensagem);
     // UNLOCK
 
@@ -108,8 +126,12 @@ void conectar_usuario(const info_usuario_t *informacoes_usuario, info_compartilh
           O usuário envia mensagem a esse usuário conectado, 
           dizendo que agora também está conectado. 
         */
-        adicionar_elemento_lista_mensagens(&compartilhado->novo_usuario_conectado[usuario_atual], &informacoes_usuario->id_usuario);
-    }    
+        adicionar_elemento_lista_mensagens(&compartilhado->novos_usuarios_conectados[usuario_atual], &informacoes_usuario->id_usuario);
+    }
+
+    #ifdef DEBUG
+    printf("\nDEBUG: Usuario %d totalmente conectado. Solicitacoes de arquivos ja enviadas.\n", informacoes_usuario->id_usuario+1);
+    #endif
 }
 
 // Funções de utilidade.
@@ -134,5 +156,5 @@ unsigned nome_arquivo_para_id(const char nome_arquivo[])
     }
 
     // Retorna -1 porque o id do arquivo é 0-based, exceto nas operações com o diretório.
-    return retorno-1;
+    return retorno - 1;
 }

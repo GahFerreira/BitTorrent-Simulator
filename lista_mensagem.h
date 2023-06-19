@@ -24,6 +24,12 @@ void inicializar_multiplas_listas_mensagem(lista_mensagem_t **lista_listas_mensa
 // Manipulação da lista de mensagem, tratando acessos concorrentes.
 
 void adicionar_elemento_lista_mensagens(lista_mensagem_t *lista_mensagem, const void *elemento);
-bool remover_elemento_lista_mensagens(lista_mensagem_t *lista_mensagem, const void *elemento, bool (funcao_comparacao) (const void *, const void *));
+void adicionar_elementos_lista_mensagens(lista_mensagem_t *lista_mensagem, const void **elementos, unsigned n_elementos);
+// Remove o elemento buscado da lista e o retorna.
+const void *extrair_elemento_lista_mensagens(lista_mensagem_t *lista_mensagem, const void *elemento, bool (funcao_comparacao) (const void *, const void *));
+// Remove o primeiro elemento da lista e o retorna.
+const void *extrair_primeiro_lista_mensagens(lista_mensagem_t *lista_mensagem);
+
+void obter_dados_lista_mensagens(lista_mensagem_t *lista_mensagem, const void **destino);
 
 #endif // LISTA_MENSAGEM_H

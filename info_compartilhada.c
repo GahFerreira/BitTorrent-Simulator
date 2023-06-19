@@ -4,6 +4,11 @@
 
 void construir_info_compartilhada(info_compartilhada_t *informacoes_compartilhadas, const unsigned n_usuarios, const unsigned n_arquivos)
 {
+    informacoes_compartilhadas->finalizar_execucao = false;
+    
+    informacoes_compartilhadas->n_usuarios_finalizados = 0;
+    inicializar_dado_concorrente(&informacoes_compartilhadas->controlador_n_usuarios_finalizados, &informacoes_compartilhadas->n_usuarios_finalizados);
+
     informacoes_compartilhadas->n_usuarios = n_usuarios;
     informacoes_compartilhadas->n_arquivos = n_arquivos;
 
@@ -22,7 +27,7 @@ void construir_info_compartilhada(info_compartilhada_t *informacoes_compartilhad
     inicializar_lista_mensagem(&informacoes_compartilhadas->usuarios_conectados);
 
     // Instancia e inicializa o vetor de listas de mensagens de conexão de novos usuários.
-    inicializar_multiplas_listas_mensagem(&informacoes_compartilhadas->novo_usuario_conectado, n_usuarios);
+    inicializar_multiplas_listas_mensagem(&informacoes_compartilhadas->novos_usuarios_conectados, n_usuarios);
 
     // Instancia e inicializa o vetor de listas de solicitação de arquivos.
     inicializar_multiplas_listas_mensagem(&informacoes_compartilhadas->solicitacoes_arquivo, n_usuarios);

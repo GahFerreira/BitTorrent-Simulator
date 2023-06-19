@@ -16,7 +16,7 @@ void inicializar_lista_encadeada(lista_encadeada_t *lista_encadeada)
     lista_encadeada->tamanho = 0;
 }
 
-bool esta_vazia_lista_encadeada(lista_encadeada_t *lista_encadeada)
+bool esta_vazia_lista_encadeada(const lista_encadeada_t *lista_encadeada)
 {
     if (lista_encadeada->tamanho == 0) return true;
     return false;
@@ -42,9 +42,9 @@ void adicionar_elemento_lista_encadeada(lista_encadeada_t *lista_encadeada, cons
 }
 
 // Retorna `true` se a remoção foi feita com sucesso, e `false` caso contrário.
-bool remover_elemento_lista_encadeada(lista_encadeada_t *lista_encadeada, const void *elemento, bool (funcao_comparacao) (const void *, const void *))
+const void *extrair_elemento_lista_encadeada(lista_encadeada_t *lista_encadeada, const void *elemento, bool (funcao_comparacao) (const void *, const void *))
 {
-    if (esta_vazia_lista_encadeada(lista_encadeada) == true) return false;
+    if (esta_vazia_lista_encadeada(lista_encadeada) == true) return NULL;
 
     /**
      * A implementação abaixo resolve todos os seguintes casos:
@@ -62,6 +62,7 @@ bool remover_elemento_lista_encadeada(lista_encadeada_t *lista_encadeada, const 
 
     no_t *atual = lista_encadeada->primeiro;
     no_t *anterior = NULL;
+
     while (true)
     {
         if (funcao_comparacao(elemento, atual->dado) == true)
@@ -75,21 +76,43 @@ bool remover_elemento_lista_encadeada(lista_encadeada_t *lista_encadeada, const 
             // Se não for o primeiro elemento, faz o anterior apontar para o próximo.
             else anterior->proximo = atual->proximo;
 
+            const void *resultado = atual->dado;
+
             free(atual);
             lista_encadeada->tamanho--;
 
-            return true;
+            return resultado;
         }
 
         // Se o nó atual é o último, e o `if` não entrou nenhuma vez, o elem. não está na lista.
-        if (atual->proximo == NULL) return false;
+        if (atual->proximo == NULL) return NULL;
 
         anterior = atual;
         atual = atual->proximo;
     }
 }
 
-void obter_dados_lista_encadeada(lista_encadeada_t *lista_encadeada, const void **destino)
+const void *extrair_primeiro_lista_encadeada(lista_encadeada_t *lista_encadeada)
+{
+    if (esta_vazia_lista_encadeada(lista_encadeada) == true) return NULL;
+
+    const void *resultado = lista_encadeada->primeiro->dado;
+
+    no_t *atual = lista_encadeada->primeiro;
+
+    // Se for o último elemento, o novo último é o anterior.
+    if (atual->proximo == NULL) lista_encadeada->ultimo = NULL;
+
+    // Se for o primeiro elemento, o novo primeiro é o seu próximo.
+    lista_encadeada->primeiro = atual->proximo;
+
+    free(atual);
+    lista_encadeada->tamanho--;
+
+    return resultado;
+}
+
+void obter_dados_lista_encadeada(const lista_encadeada_t *lista_encadeada, const void **destino)
 {
     if (esta_vazia_lista_encadeada(lista_encadeada) == true) return;
 

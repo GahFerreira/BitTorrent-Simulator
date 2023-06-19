@@ -40,7 +40,7 @@ unsigned obter_numero_arquivos(manipulador_arquivos_t *manipulador_arquivos)
 {
     if (!abrir_diretorio(manipulador_arquivos))
     {
-        printf("\nERRO: Falha em inicializar lista de arquivos do diretorio %s. [info_usuario::inicializar_lista_arquivos]\n\n", manipulador_arquivos->nome_diretorio);
+        printf("\nERRO: Falha em abrir diretorio %s. [manipulador_arquivos::obter_numero_arquivos]\n\n", manipulador_arquivos->nome_diretorio);
 
         return 0;
     }
@@ -65,7 +65,7 @@ unsigned obter_lista_arquivos(manipulador_arquivos_t *manipulador_arquivos, char
 {
     if (!abrir_diretorio(manipulador_arquivos))
     {
-        printf("\nERRO: Falha em inicializar lista de arquivos do diretorio %s. [info_usuario::inicializar_lista_arquivos]\n\n", manipulador_arquivos->nome_diretorio);
+        printf("\nERRO: Falha em inicializar lista de arquivos do diretorio %s. [manipulador_arquivos::obter_lista_arquivos]\n\n", manipulador_arquivos->nome_diretorio);
 
         return 0;
     }

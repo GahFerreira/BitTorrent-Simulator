@@ -29,9 +29,10 @@ struct lista_encadeada
 void inicializar_no(no_t *no, const void *dado);
 void inicializar_lista_encadeada(lista_encadeada_t *lista_encadeada);
 
-bool esta_vazia_lista_encadeada(lista_encadeada_t *lista_encadeada);
+bool esta_vazia_lista_encadeada(const lista_encadeada_t *lista_encadeada);
 void adicionar_elemento_lista_encadeada(lista_encadeada_t *lista_encadeada, const void *elemento);
-bool remover_elemento_lista_encadeada(lista_encadeada_t *lista_encadeada, const void *elemento, bool (funcao_comparacao) (const void *, const void *));
+const void *extrair_elemento_lista_encadeada(lista_encadeada_t *lista_encadeada, const void *elemento, bool (funcao_comparacao) (const void *, const void *));
+const void *extrair_primeiro_lista_encadeada(lista_encadeada_t *lista_encadeada);
 
 /*
 Obtém todos os dados da lista encadeada e os coloca no vetor `destino`.
@@ -44,6 +45,6 @@ aponta `destino`.
 Para não ser possível mudar os elementos apontados por destino, o tipo deveria ser algo como:
 [const void * const *].
 */
-void obter_dados_lista_encadeada(lista_encadeada_t *lista_encadeada, const void **destino);
+void obter_dados_lista_encadeada(const lista_encadeada_t *lista_encadeada, const void **destino);
 
 #endif // LISTA_ENCADEADA_H
