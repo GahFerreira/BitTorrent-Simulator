@@ -19,6 +19,9 @@ void *processar_mensagens_recebidas(info_total_t *info_total)
     // Obtém a lista de recebimento de mensagens de completude de arquivos.
     lista_mensagem_t *arquivo_completo = &info_total->info_compartilhada->arquivo_completo[id_usuario];
 
+    // Obtém a lista de solicitações de arquivos.
+    lista_mensagem_t *solicitacoes_arquivo = &info_total->info_compartilhada->solicitacoes_arquivo[id_usuario];
+
     while (info_total->info_compartilhada->finalizar_execucao == false)
     {
         // Primeiro passo - O usuário checa se há algum novo usuário conectado.
@@ -26,6 +29,9 @@ void *processar_mensagens_recebidas(info_total_t *info_total)
 
         // Segundo passo - O usuário checa se há alguma nova mensagem de completude de arquivo.
         checar_mensagem_arquivo_completo(info_total, arquivo_completo, id_usuario);
+
+        // Terceiro passo - O usuário checa se há alguma nova solicitação de arquivo.
+        checar_solicitacoes_arquivo(info_total, solicitacoes_arquivo, id_usuario);
 
         meu_sleep((id_usuario+1) * 750);
     }
@@ -123,5 +129,28 @@ void checar_mensagem_arquivo_completo(info_total_t *info_total, lista_mensagem_t
 
         // TODO: Talvez colocar numa função à parte?
         free((par_usuario_arquivo_t *) mensagem_arquivo_completo);
+    }
+}
+
+void checar_solicitacoes_arquivo(info_total_t *info_total, lista_mensagem_t *solicitacoes_arquivo, const unsigned id_usuario)
+{
+    #ifdef DEBUG
+    printf("\nDEBUG: Usuario %u checa solicitacoes de arquivo.\n", id_usuario+1);
+    #endif
+
+    const par_usuario_arquivo_t *solicitacao_arquivo = (const par_usuario_arquivo_t *) extrair_primeiro_lista_mensagem(solicitacoes_arquivo);
+
+    if (solicitacao_arquivo != NULL)
+    {
+        #ifdef DEBUG 
+        printf("\nDEBUG: Usuario %u encontra nova solicitacao de arquivo: <usuario: %u, arquivo: %u>\n", id_usuario+1, solicitacao_arquivo->usuario, solicitacao_arquivo->id_arquivo); 
+        #endif
+
+        estado_progresso_t estado_arquivo = obter_estado_arquivo(&info_total->info_usuario->controlador_info_arquivos, solicitacao_arquivo->id_arquivo);
+
+        if (estado_arquivo == COMPLETO)
+        {
+            adicionar_tarefa(&info_total->info_usuario->lista_tarefas, id_usuario, solicitacao_arquivo->id_arquivo);
+        }
     }
 }
