@@ -36,10 +36,10 @@ void *iniciar_usuario(info_compartilhada_t *compartilhado)
     pthread_create(&processar_mensagens, NULL, (void * (*) (void *)) processar_mensagens_recebidas, (void *) &info_total);
     pthread_join(processar_mensagens, NULL);
 
-    _sleep(3000);
+    meu_sleep(3000);
 
     // Usuário remove a sua conexão do programa.
-    extrair_elemento_lista_mensagens(&compartilhado->usuarios_conectados, &minhas_informacoes.id_usuario, (bool (*) (const void *, const void *)) comparar_unsigned);
+    extrair_elemento_lista_mensagem(&compartilhado->usuarios_conectados, &minhas_informacoes.id_usuario, (bool (*) (const void *, const void *)) comparar_unsigned);
 
     /// PARTE X: Destruir estruturas de dados.
     //finalizar_usuario(&minhas_informacoes, &manipulador_arquivos);
@@ -126,7 +126,7 @@ void conectar_usuario(const info_usuario_t *informacoes_usuario, info_compartilh
           O usuário envia mensagem a esse usuário conectado, 
           dizendo que agora também está conectado. 
         */
-        adicionar_elemento_lista_mensagens(&compartilhado->novos_usuarios_conectados[usuario_atual], &informacoes_usuario->id_usuario);
+        adicionar_elemento_lista_mensagem(&compartilhado->novos_usuarios_conectados[usuario_atual], &informacoes_usuario->id_usuario);
     }
 
     #ifdef DEBUG

@@ -22,6 +22,24 @@ bool esta_vazia_lista_encadeada(const lista_encadeada_t *lista_encadeada)
     return false;
 }
 
+// Retorna `true` caso o elemento esteja na lista e `false` caso contrário.
+bool localizar_elemento_lista_encadeada(lista_encadeada_t *lista_encadeada, const void *elemento, bool (funcao_comparacao) (const void *, const void *))
+{
+    if (esta_vazia_lista_encadeada(lista_encadeada) == true) return false;
+
+    no_t *atual = lista_encadeada->primeiro;
+
+    while (true)
+    {
+        if (funcao_comparacao(elemento, atual->dado) == true) return true;
+
+        // Se o nó atual é o último, e o `if` não entrou nenhuma vez, o elem. não está na lista.
+        if (atual->proximo == NULL) return false;
+
+        atual = atual->proximo;
+    }
+}
+
 void adicionar_elemento_lista_encadeada(lista_encadeada_t *lista_encadeada, const void *elemento)
 {
     no_t *novo_no = (no_t *) calloc(1, sizeof(no_t));
@@ -41,7 +59,7 @@ void adicionar_elemento_lista_encadeada(lista_encadeada_t *lista_encadeada, cons
     ++lista_encadeada->tamanho;
 }
 
-// Retorna `true` se a remoção foi feita com sucesso, e `false` caso contrário.
+// Retorna o elemento caso tenha sido extraído com sucesso, ou NULL caso contrário.
 const void *extrair_elemento_lista_encadeada(lista_encadeada_t *lista_encadeada, const void *elemento, bool (funcao_comparacao) (const void *, const void *))
 {
     if (esta_vazia_lista_encadeada(lista_encadeada) == true) return NULL;

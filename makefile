@@ -2,7 +2,7 @@
 COMPILADOR_C = gcc
 COMPILADOR_CPP = g++
 
-VERSAO_C = -std=c99
+VERSAO_C = -std=c17
 VERSAO_CPP = -std=c++20
 
 FLAGS_C = -Wstrict-prototypes
@@ -16,7 +16,7 @@ FLAGS_EXTRAS = -g -D_GLIBCOMPILADOR_DEBUG -D_GLIBCOMPILADOR_DEBUG_PEDANTIC -D_FO
 
 FLAGS = $(FLAGS_BASICAS) $(FLAGS_REGULARES) $(FLAGS_EXTRAS)
 
-TODOS_PONTO_O = util.o dado_concorrente.o lista_encadeada.o lista_mensagem.o manipulador_arquivos.o info_compartilhada.o info_usuario.o info_total.o processamento_mensagens.o usuario.o main.o
+TODOS_PONTO_O = util.o dado_concorrente.o lista_encadeada.o lista_mensagem.o manipulador_arquivos.o info_compartilhada.o info_usuario.o info_total.o processamento_mensagens.o par_usuario_arquivo.o usuario.o main.o
 
 # Regras
 
@@ -44,6 +44,9 @@ main.o: main.c
 
 usuario.o: usuario.c usuario.h
 	$(COMPILADOR) $(FLAGS) -c usuario.c
+
+par_usuario_arquivo.o: par_usuario_arquivo.c par_usuario_arquivo.h
+	$(COMPILADOR) $(FLAGS) -c par_usuario_arquivo.c
 
 processamento_mensagens.o: processamento_mensagens.c processamento_mensagens.h
 	$(COMPILADOR) $(FLAGS) -c processamento_mensagens.c

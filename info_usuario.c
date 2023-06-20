@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "info_usuario.h"
+#include "par_usuario_arquivo.h"
 
 void construir_info_usuario(info_usuario_t *informacoes_usuario, const unsigned id, const unsigned n_arquivos)
 {
@@ -134,4 +135,54 @@ void obter_arquivos_em_progresso(const dado_concorrente_t *controlador_info_arqu
             ++i_em_progresso;
         }
     }
+}
+
+estado_progresso_t obter_estado_arquivo(dado_concorrente_t *controlador_info_arquivos, const unsigned id_arquivo)
+{
+    estado_progresso_t resultado;
+
+    pthread_mutex_lock(&controlador_info_arquivos->mutex_mensagem);
+
+    if (id_arquivo >= ((info_arquivos_t *) controlador_info_arquivos->dado)->n_arquivos) 
+    {
+        printf("\nERRO: Tentativa de obter estado de arquivo invalido. | Num. arq. disponiveis: %u | id requisitado: %u [info_usuario::obter_estado_arquivo]\n\n", ((info_arquivos_t *) controlador_info_arquivos->dado)->n_arquivos, id_arquivo);
+
+        resultado = VAZIO;
+    }
+
+    else
+    {
+        resultado = ((info_arquivos_t *) controlador_info_arquivos->dado)->estado_arquivos[id_arquivo];
+    }
+
+    pthread_mutex_unlock(&controlador_info_arquivos->mutex_mensagem);
+
+    return resultado;
+}
+
+void adicionar_tarefa(lista_mensagem_t *lista_tarefa, const unsigned usuario, const unsigned id_arquivo)
+{
+    par_usuario_arquivo_t *tarefa = (par_usuario_arquivo_t *) calloc(1, sizeof(par_usuario_arquivo_t));
+
+    tarefa->usuario = usuario;
+    tarefa->id_arquivo = id_arquivo;
+
+    adicionar_elemento_lista_mensagem(lista_tarefa, tarefa);
+}
+
+void completar_tarefa(lista_mensagem_t *lista_tarefa, const unsigned usuario, const unsigned id_arquivo)
+{
+    par_usuario_arquivo_t tarefa;
+
+    tarefa.usuario = usuario;
+    tarefa.id_arquivo = id_arquivo;
+
+    const par_usuario_arquivo_t *tarefa_a_completar = (const par_usuario_arquivo_t *) extrair_elemento_lista_mensagem(lista_tarefa, &tarefa, (bool (*) (const void *, const void *)) comparar_par_usuario_arquivo);
+
+    if (tarefa_a_completar == NULL)
+    {
+        printf("\nERRO: Falha em extrair a tarefa <usuario: %u, arquivo: %u> da lista de tarefas. [info_usuario.c::completar_tarefa]\n\n", usuario, id_arquivo);
+    }
+
+    else free((par_usuario_arquivo_t *) tarefa_a_completar);
 }

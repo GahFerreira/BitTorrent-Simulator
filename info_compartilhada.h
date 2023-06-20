@@ -12,7 +12,6 @@
 #include "lista_mensagem.h"
 
 typedef struct info_compartilhada info_compartilhada_t;
-typedef struct par par_t;
 
 struct info_compartilhada
 {
@@ -41,11 +40,13 @@ struct info_compartilhada
     lista_mensagem_t *arquivo_completo;
 };
 
-struct par
-{
-    unsigned usuario, id_arquivo;
-};
-
 void construir_info_compartilhada(info_compartilhada_t *informacoes_compartilhadas, const unsigned n_usuarios, const unsigned n_arquivos);
+
+/*
+    O `usuario_fonte` envia uma mensagem ao `usuario_destino` pedindo o arquivo cujo id é `id_arquivo`.
+
+    Nota: aloca memória, que deverá ser liberada ao processar a mensagem.
+*/
+void enviar_solicitacao_arquivo(info_compartilhada_t *info_compartilhada, const unsigned usuario_fonte, const unsigned id_arquivo, const unsigned usuario_destino);
 
 #endif // INFO_COMPARTILHADA_H

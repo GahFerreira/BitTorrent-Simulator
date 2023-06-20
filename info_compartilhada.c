@@ -1,6 +1,7 @@
 #include <stdlib.h>
 
 #include "info_compartilhada.h"
+#include "par_usuario_arquivo.h"
 
 void construir_info_compartilhada(info_compartilhada_t *informacoes_compartilhadas, const unsigned n_usuarios, const unsigned n_arquivos)
 {
@@ -34,4 +35,13 @@ void construir_info_compartilhada(info_compartilhada_t *informacoes_compartilhad
 
     // Instancia e inicializa o vetor de listas de conclusão de arquivos.
     inicializar_multiplas_listas_mensagem(&informacoes_compartilhadas->arquivo_completo, n_usuarios);
+}
+
+void enviar_solicitacao_arquivo(info_compartilhada_t *info_compartilhada, const unsigned usuario_fonte, const unsigned id_arquivo, const unsigned usuario_destino)
+{
+    par_usuario_arquivo_t *requisicao = (par_usuario_arquivo_t *) calloc(1, sizeof(par_usuario_arquivo_t));
+    requisicao->id_arquivo = id_arquivo;
+    requisicao->usuario = usuario_fonte;
+
+    adicionar_elemento_lista_mensagem(&info_compartilhada->solicitacoes_arquivo[usuario_destino], requisicao);
 }

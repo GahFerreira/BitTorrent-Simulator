@@ -11,6 +11,8 @@
 
 #include "dado_concorrente.h"
 #include "manipulador_arquivos.h"
+#include "lista_mensagem.h"
+
 
 typedef unsigned char estado_progresso_t;
 typedef struct info_usuario info_usuario_t;
@@ -30,6 +32,8 @@ struct info_usuario
 
     info_arquivos_t info_arquivos;
     dado_concorrente_t controlador_info_arquivos;
+
+    lista_mensagem_t lista_tarefas;
 };
 
 void construir_info_usuario(info_usuario_t* informacoes_usuario, const unsigned id, const unsigned n_arquivos);
@@ -50,6 +54,20 @@ bool inicializar_info_arquivos(info_arquivos_t *info_arquivos, unsigned (funcao_
 void abrir_info_arquivos(dado_concorrente_t *controlador_info_arquivos); 
 void fechar_info_arquivos(dado_concorrente_t *controlador_info_arquivos);
 
+/*
+    Preenche cada posição de `arquivos_em_progresso` com um valor 
+    referente a um arquivo que está `EM_PROGRESSO`.
+
+    Pressupõe que o `dado_concorrente_t` já esteja bloqueado.
+
+    TODO: Modificar semanticamente essa função: talvez trocar dado_concorrente_t por info_arquivos_t?
+*/
 void obter_arquivos_em_progresso(const dado_concorrente_t *controlador_info_arquivos, unsigned arquivos_em_progresso[]);
+
+estado_progresso_t obter_estado_arquivo(dado_concorrente_t *controlador_info_arquivos, const unsigned id_arquivo);
+
+// Para cada chamada de `adicionar_tarefa`, deve-se ter uma chamada de `completar_tarefa`.
+void adicionar_tarefa(lista_mensagem_t *lista_tarefa, const unsigned usuario, const unsigned id_arquivo);
+void completar_tarefa(lista_mensagem_t *lista_tarefa, const unsigned usuario, const unsigned id_arquivo);
 
 #endif // INFO_USUARIO_H

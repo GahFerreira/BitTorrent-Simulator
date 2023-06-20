@@ -30,6 +30,7 @@ void inicializar_no(no_t *no, const void *dado);
 void inicializar_lista_encadeada(lista_encadeada_t *lista_encadeada);
 
 bool esta_vazia_lista_encadeada(const lista_encadeada_t *lista_encadeada);
+bool localizar_elemento_lista_encadeada(lista_encadeada_t *lista_encadeada, const void *elemento, bool (funcao_comparacao) (const void *, const void *));
 void adicionar_elemento_lista_encadeada(lista_encadeada_t *lista_encadeada, const void *elemento);
 const void *extrair_elemento_lista_encadeada(lista_encadeada_t *lista_encadeada, const void *elemento, bool (funcao_comparacao) (const void *, const void *));
 const void *extrair_primeiro_lista_encadeada(lista_encadeada_t *lista_encadeada);
