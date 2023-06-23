@@ -4,7 +4,9 @@
 #include <unistd.h>
 #endif
 
+#include <stdlib.h>
 #include <stdbool.h>
+#include <time.h>
 
 #include "util.h"
 
@@ -21,4 +23,14 @@ void meu_sleep(unsigned milisegundos)
     #else
     sleep(milisegundos / 1000);
     #endif
+}
+
+void semear_numeros_aleatorios(void)
+{
+    srand((unsigned) time(NULL));
+}
+
+unsigned aleatorio(unsigned minimo, unsigned maximo)
+{
+    return minimo + ( (unsigned) rand() % (maximo-minimo+1) );
 }

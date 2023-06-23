@@ -1,4 +1,4 @@
-#ifdef DEBUG
+#if DEBUG > 0
 #include <stdio.h>
 #endif
 
@@ -8,7 +8,9 @@
 
 void *processar_mensagens_recebidas(info_total_t *info_total)
 {
-    // Parte 1 - O usuário checa se há algum novo usuário conectado
+    #if DEBUG >= 3
+    printf("[DEBUG-3] Usuario %u iniciou processar_mensagens_recebidas.\n\n", info_total->info_usuario->id_usuario+1);
+    #endif
 
     // Obtém o id do usuário atual.
     const unsigned id_usuario = info_total->info_usuario->id_usuario;
@@ -31,18 +33,21 @@ void *processar_mensagens_recebidas(info_total_t *info_total)
         checar_mensagem_arquivo_completo(info_total, arquivo_completo, id_usuario);
 
         // Terceiro passo - O usuário checa se há alguma nova solicitação de arquivo.
-        checar_solicitacoes_arquivo(info_total, solicitacoes_arquivo, id_usuario);
+        checar_solicitacoes_arquivo(info_total->info_usuario, solicitacoes_arquivo, id_usuario);
 
-        meu_sleep((id_usuario+1) * 750);
+        // Neste momento, esse algoritmo roda uma vez por segundo.
+        meu_sleep(1000);
     }
+
+    pthread_exit(NULL);
 
     return NULL;
 }
 
 void checar_novo_usuario_conectado(info_total_t *info_total, lista_mensagem_t *novos_usuarios_conectados, const unsigned id_usuario)
 {
-    #ifdef DEBUG
-    printf("\nDEBUG: Usuario %u checa novos usuarios conectados.\n", id_usuario+1);
+    #if DEBUG >= 5
+    printf("[DEBUG-5] Usuario %u checa novos usuarios conectados.\n", id_usuario+1);
     #endif
 
     // Tenta extrair um dos novos usuários conectados.
@@ -51,30 +56,32 @@ void checar_novo_usuario_conectado(info_total_t *info_total, lista_mensagem_t *n
     // Só realiza ação se houver um novo usuário conectado.
     if (novo_usuario_conectado != NULL)
     {
-        #ifdef DEBUG 
-        printf("\nDEBUG: Usuario %u encontra novo usuario conectado: usuario %u\n", id_usuario+1, *novo_usuario_conectado+1); 
+        #if DEBUG >= 5
+        printf("[DEBUG-5] Usuario %u encontra novo usuario conectado: usuario %u\n", id_usuario+1, *novo_usuario_conectado+1); 
         #endif
 
         unsigned n_arquivos_em_progresso;
 
         /*
-            Precisa obter o mutex de `info_arquivos`, pois realiza dois acessos:
+            Precisa trancar `info_arquivos`, pois realiza dois acessos:
             1 - Recupera o número de arquivos em progresso
             2 - Recupera os arquivos em progresso
+
+            Como a segunda depende da primeira, `info_arquivos` não pode ser destrancado entre elas.
         */
-        abrir_info_arquivos(&info_total->info_usuario->controlador_info_arquivos);
+        trancar_info_arquivos(&info_total->info_usuario->info_arquivos);
 
         /*
             Cria um vetor para guardar os arquivos que ainda estão em progresso.
             Esse vetor é exatamente do tamanho necessário.
         */
-        n_arquivos_em_progresso = ((info_arquivos_t *) (info_total->info_usuario->controlador_info_arquivos.dado))->n_em_progresso;
+        n_arquivos_em_progresso = info_total->info_usuario->info_arquivos.n_em_progresso;
 
         unsigned arquivos_em_progresso[n_arquivos_em_progresso];
 
-        obter_arquivos_em_progresso(&info_total->info_usuario->controlador_info_arquivos, arquivos_em_progresso);
+        obter_arquivos_em_progresso(&info_total->info_usuario->info_arquivos, arquivos_em_progresso);
 
-        fechar_info_arquivos(&info_total->info_usuario->controlador_info_arquivos);
+        destrancar_info_arquivos(&info_total->info_usuario->info_arquivos);
 
         /*
             Envia ao novo usuário conectado os arquivos que precisa.
@@ -89,7 +96,7 @@ void checar_novo_usuario_conectado(info_total_t *info_total, lista_mensagem_t *n
             */
             requisicoes[i_requisicao] = (par_usuario_arquivo_t *) calloc(1, sizeof(par_usuario_arquivo_t));
 
-            requisicoes[i_requisicao]->usuario = id_usuario;
+            requisicoes[i_requisicao]->id_usuario = id_usuario;
             requisicoes[i_requisicao]->id_arquivo = arquivos_em_progresso[i_requisicao];
         }
 
@@ -99,8 +106,8 @@ void checar_novo_usuario_conectado(info_total_t *info_total, lista_mensagem_t *n
 
 void checar_mensagem_arquivo_completo(info_total_t *info_total, lista_mensagem_t *arquivo_completo, const unsigned id_usuario)
 {
-    #ifdef DEBUG
-    printf("\nDEBUG: Usuario %u checa novas mensagens de completude de arquivos.\n", id_usuario+1);
+    #if DEBUG >= 5
+    printf("[DEBUG-5] Usuario %u checa novas mensagens de completude de arquivos.\n", id_usuario+1);
     #endif
 
     // Tenta extrair uma nova mensagem de arquivo completo.
@@ -108,23 +115,23 @@ void checar_mensagem_arquivo_completo(info_total_t *info_total, lista_mensagem_t
 
     if (mensagem_arquivo_completo != NULL)
     {
-        #ifdef DEBUG 
-        printf("\nDEBUG: Usuario %u encontra nova mensagem de arquivo completo: <usuario: %u, arquivo: %u>\n", id_usuario+1, mensagem_arquivo_completo->usuario, mensagem_arquivo_completo->id_arquivo); 
+        #if DEBUG >= 5
+        printf("[DEBUG-5] Usuario %u encontra nova mensagem de arquivo completo: <usuario: %u, arquivo: %u>\n", id_usuario+1, mensagem_arquivo_completo->id_usuario+1, mensagem_arquivo_completo->id_arquivo+1); 
         #endif
 
         // Obtém o estado do arquivo dito como completo.
-        estado_progresso_t estado_arquivo = obter_estado_arquivo(&info_total->info_usuario->controlador_info_arquivos, mensagem_arquivo_completo->id_arquivo);
+        estado_progresso_t estado_arquivo = obter_estado_arquivo(&info_total->info_usuario->info_arquivos, mensagem_arquivo_completo->id_arquivo);
 
         // Envia uma solicitação de arquivo ao usuário da mensagem.
         if (estado_arquivo == EM_PROGRESSO)
         {
-            enviar_solicitacao_arquivo(info_total->info_compartilhada, id_usuario, mensagem_arquivo_completo->id_arquivo, mensagem_arquivo_completo->usuario);
+            enviar_solicitacao_arquivo(info_total->info_compartilhada, id_usuario, mensagem_arquivo_completo->id_arquivo, mensagem_arquivo_completo->id_usuario);
         }
 
         // Retira <usuário_mensagem, arquivo_mensagem> da sua lista de tarefas.
         else if (estado_arquivo == COMPLETO)
         {
-            completar_tarefa(&info_total->info_usuario->lista_tarefas, mensagem_arquivo_completo->usuario, mensagem_arquivo_completo->id_arquivo);
+            completar_tarefa(&info_total->info_usuario->lista_tarefas, mensagem_arquivo_completo->id_usuario, mensagem_arquivo_completo->id_arquivo);
         }
 
         // TODO: Talvez colocar numa função à parte?
@@ -132,25 +139,25 @@ void checar_mensagem_arquivo_completo(info_total_t *info_total, lista_mensagem_t
     }
 }
 
-void checar_solicitacoes_arquivo(info_total_t *info_total, lista_mensagem_t *solicitacoes_arquivo, const unsigned id_usuario)
+void checar_solicitacoes_arquivo(info_usuario_t *info_usuario, lista_mensagem_t *solicitacoes_arquivo, const unsigned id_usuario)
 {
-    #ifdef DEBUG
-    printf("\nDEBUG: Usuario %u checa solicitacoes de arquivo.\n", id_usuario+1);
+    #if DEBUG >= 5
+    printf("[DEBUG-5] Usuario %u checa solicitacoes de arquivo.\n", id_usuario+1);
     #endif
 
     const par_usuario_arquivo_t *solicitacao_arquivo = (const par_usuario_arquivo_t *) extrair_primeiro_lista_mensagem(solicitacoes_arquivo);
 
     if (solicitacao_arquivo != NULL)
     {
-        #ifdef DEBUG 
-        printf("\nDEBUG: Usuario %u encontra nova solicitacao de arquivo: <usuario: %u, arquivo: %u>\n", id_usuario+1, solicitacao_arquivo->usuario, solicitacao_arquivo->id_arquivo); 
+        #if DEBUG >= 5
+        printf("[DEBUG-5] Usuario %u encontra nova solicitacao de arquivo: <usuario: %u, arquivo: %u>\n", id_usuario+1, solicitacao_arquivo->id_usuario+1, solicitacao_arquivo->id_arquivo+1); 
         #endif
 
-        estado_progresso_t estado_arquivo = obter_estado_arquivo(&info_total->info_usuario->controlador_info_arquivos, solicitacao_arquivo->id_arquivo);
+        estado_progresso_t estado_arquivo = obter_estado_arquivo(&info_usuario->info_arquivos, solicitacao_arquivo->id_arquivo);
 
         if (estado_arquivo == COMPLETO)
         {
-            adicionar_tarefa(&info_total->info_usuario->lista_tarefas, id_usuario, solicitacao_arquivo->id_arquivo);
+            adicionar_tarefa(&info_usuario->lista_tarefas, id_usuario, solicitacao_arquivo->id_arquivo);
         }
     }
 }

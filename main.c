@@ -3,6 +3,7 @@
 
 #include "usuario.h"
 #include "info_compartilhada.h"
+#include "util.h"
 
 void obter_parametros_invocacao(const int argc, const char * const *argv, unsigned *n_usuarios, unsigned *n_max_arquivos, unsigned *tam_fragmento, unsigned *tam_buffer)
 {
@@ -53,6 +54,8 @@ int main(int argc, char *argv[])
 {
     printf("Inicio do programa\n\n");
 
+    semear_numeros_aleatorios();
+
     // Parâmetros de invocação.
     unsigned n_usuarios, n_max_arquivos, tam_fragmento, tam_buffer;
     obter_parametros_invocacao(argc, (const char * const *) argv, &n_usuarios, &n_max_arquivos, &tam_fragmento, &tam_buffer);
@@ -67,7 +70,7 @@ int main(int argc, char *argv[])
     // Inicia as threads.
     for (unsigned i_usuario = 0; i_usuario < n_usuarios; ++i_usuario)
     {
-        printf("Criacao do usuario %d\n", i_usuario+1);
+        printf("Criacao do usuario %u\n", i_usuario+1);
         pthread_create(&usuario[i_usuario], NULL, (void * (*)(void *)) iniciar_usuario, (void *) &compartilhado);
     }
 
@@ -75,7 +78,7 @@ int main(int argc, char *argv[])
     for (unsigned i_usuario = 0; i_usuario < n_usuarios; ++i_usuario)
     {
         pthread_join(usuario[i_usuario], NULL);
-        printf("Usuario %d terminou\n", i_usuario+1);
+        printf("Usuario %u terminou\n", i_usuario+1);
     }
     printf("\n");
 

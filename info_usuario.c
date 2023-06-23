@@ -10,8 +10,6 @@ void construir_info_usuario(info_usuario_t *informacoes_usuario, const unsigned 
     informacoes_usuario->id_usuario = id;
 
     construir_info_arquivos(&informacoes_usuario->info_arquivos, n_arquivos);
-
-    inicializar_dado_concorrente(&informacoes_usuario->controlador_info_arquivos, &informacoes_usuario->info_arquivos);
 }
 
 void construir_info_arquivos(info_arquivos_t *info_arquivos, const unsigned n_arquivos)
@@ -22,6 +20,8 @@ void construir_info_arquivos(info_arquivos_t *info_arquivos, const unsigned n_ar
     info_arquivos->n_completos = 0;
 
     info_arquivos->estado_arquivos = (estado_progresso_t *) calloc(n_arquivos, sizeof(estado_progresso_t));
+
+    info_arquivos->mutex_info_arquivos = PTHREAD_MUTEX_INITIALIZER;
 }
 
 bool inicializar_info_arquivos(info_arquivos_t *info_arquivos, unsigned (funcao_conversora) (const char[]), manipulador_arquivos_t *manipulador_arquivos)
@@ -73,17 +73,17 @@ bool inicializar_info_arquivos(info_arquivos_t *info_arquivos, unsigned (funcao_
         // Erro de abertura de diretório.
         if (tam_maior_nome == 0) 
         {
-            printf("\nERRO: Falha ao inicializar estados de arquivos. [info_usuario::inicializar_info_arquivos]\n\n");
+            printf("[[ERRO]] Falha ao inicializar estados de arquivos. [info_usuario::inicializar_info_arquivos]\n\n");
 
             return false;
         }
 
     } while (tam_maior_nome > tam_maior_nome_esperado);
 
-    #ifdef DEBUG
+    #if DEBUG >= 1
     {
         char dbg_para_printar[manipulador_arquivos->n_arquivos * tam_maior_nome + 128];
-        snprintf(dbg_para_printar, 128, "\nDEBUG: %u arquivos inicialmente no diretorio %s\n", manipulador_arquivos->n_arquivos, manipulador_arquivos->nome_diretorio);
+        snprintf(dbg_para_printar, 128, "\n[DEBUG-1] %u arquivos inicialmente no diretorio %s\n", manipulador_arquivos->n_arquivos, manipulador_arquivos->nome_diretorio);
         for (unsigned i_arquivo = 0; i_arquivo < manipulador_arquivos->n_arquivos; ++i_arquivo)
         {
             strcat(dbg_para_printar, nomes_arquivos[i_arquivo]);
@@ -111,77 +111,109 @@ bool inicializar_info_arquivos(info_arquivos_t *info_arquivos, unsigned (funcao_
     return true;
 }
 
-void abrir_info_arquivos(dado_concorrente_t *controlador_info_arquivos)
+void trancar_info_arquivos(info_arquivos_t *info_arquivos)
 {
-    pthread_mutex_lock(&controlador_info_arquivos->mutex_mensagem);
+    pthread_mutex_lock(&info_arquivos->mutex_info_arquivos);
 }
 
-void fechar_info_arquivos(dado_concorrente_t *controlador_info_arquivos)
+void destrancar_info_arquivos(info_arquivos_t *info_arquivos)
 {
-    pthread_mutex_unlock(&controlador_info_arquivos->mutex_mensagem);
+    pthread_mutex_unlock(&info_arquivos->mutex_info_arquivos);
 }
 
-void obter_arquivos_em_progresso(const dado_concorrente_t *controlador_info_arquivos, unsigned arquivos_em_progresso[])
+void obter_arquivos_generico(info_arquivos_t *info_arquivos, unsigned vetor_arquivos[], estado_progresso_t estado_escolhido)
 {
-    const info_arquivos_t *informacoes_arquivos = (const info_arquivos_t *) controlador_info_arquivos->dado;
-
-    for (unsigned i_arquivo = 0, i_em_progresso = 0; i_arquivo < informacoes_arquivos->n_arquivos; ++i_arquivo)
+    for (unsigned i_arquivo = 0, i_vetor_arquivos = 0; i_arquivo < info_arquivos->n_arquivos; ++i_arquivo)
     {
-        estado_progresso_t estado_arquivo = informacoes_arquivos->estado_arquivos[i_arquivo];
+        estado_progresso_t estado_arquivo = info_arquivos->estado_arquivos[i_arquivo];
 
-        if (estado_arquivo == EM_PROGRESSO)
+        if (estado_arquivo == estado_escolhido)
         {
-            arquivos_em_progresso[i_em_progresso] = i_arquivo;
-            ++i_em_progresso;
+            vetor_arquivos[i_vetor_arquivos] = i_arquivo;
+            ++i_vetor_arquivos;
         }
     }
 }
 
-estado_progresso_t obter_estado_arquivo(dado_concorrente_t *controlador_info_arquivos, const unsigned id_arquivo)
+void obter_arquivos_ausentes(info_arquivos_t *info_arquivos, unsigned arquivos_faltantes[])
+{
+    obter_arquivos_generico(info_arquivos, arquivos_faltantes, VAZIO);
+}
+
+void obter_arquivos_em_progresso(info_arquivos_t *info_arquivos, unsigned arquivos_em_progresso[])
+{
+    obter_arquivos_generico(info_arquivos, arquivos_em_progresso, EM_PROGRESSO);
+}
+
+void obter_arquivos_completos(info_arquivos_t *info_arquivos, unsigned arquivos_completos[])
+{
+    obter_arquivos_generico(info_arquivos, arquivos_completos, COMPLETO);
+}
+
+estado_progresso_t obter_estado_arquivo(info_arquivos_t *info_arquivos, const unsigned id_arquivo)
 {
     estado_progresso_t resultado;
 
-    pthread_mutex_lock(&controlador_info_arquivos->mutex_mensagem);
-
-    if (id_arquivo >= ((info_arquivos_t *) controlador_info_arquivos->dado)->n_arquivos) 
+    if (id_arquivo >= info_arquivos->n_arquivos)
     {
-        printf("\nERRO: Tentativa de obter estado de arquivo invalido. | Num. arq. disponiveis: %u | id requisitado: %u [info_usuario::obter_estado_arquivo]\n\n", ((info_arquivos_t *) controlador_info_arquivos->dado)->n_arquivos, id_arquivo);
+        printf("[[ERRO]] Tentativa de obter estado de arquivo invalido. | Num. arq. disponiveis: %u | id requisitado: %u [info_usuario::obter_estado_arquivo]\n\n", info_arquivos->n_arquivos, id_arquivo+1);
 
         resultado = VAZIO;
     }
 
     else
     {
-        resultado = ((info_arquivos_t *) controlador_info_arquivos->dado)->estado_arquivos[id_arquivo];
+        resultado = info_arquivos->estado_arquivos[id_arquivo];
     }
-
-    pthread_mutex_unlock(&controlador_info_arquivos->mutex_mensagem);
 
     return resultado;
 }
 
-void adicionar_tarefa(lista_mensagem_t *lista_tarefa, const unsigned usuario, const unsigned id_arquivo)
+bool arquivo_para_em_progresso(info_arquivos_t *info_arquivos, const unsigned id_usuario, const unsigned id_arquivo)
+{
+    if (obter_estado_arquivo(info_arquivos, id_arquivo) != VAZIO)
+    {
+        printf("[[ERRO]] Tentativa de mudar arquivo %u do usuario %u para EM_PROGRESSO, mas o arquivo nao esta VAZIO. [info_usuario::arquivo_para_em_progresso]\n\n", id_arquivo+1, id_usuario+1);
+
+        return false;
+    }
+
+    trancar_info_arquivos(info_arquivos);
+
+    --info_arquivos->n_vazios;
+    ++info_arquivos->n_em_progresso;
+
+    info_arquivos->estado_arquivos[id_arquivo] = EM_PROGRESSO;
+
+    destrancar_info_arquivos(info_arquivos);
+
+    return true;
+}
+
+// bool arquivo_para_completo();
+
+void adicionar_tarefa(lista_mensagem_t *lista_tarefa, const unsigned id_usuario, const unsigned id_arquivo)
 {
     par_usuario_arquivo_t *tarefa = (par_usuario_arquivo_t *) calloc(1, sizeof(par_usuario_arquivo_t));
 
-    tarefa->usuario = usuario;
+    tarefa->id_usuario = id_usuario;
     tarefa->id_arquivo = id_arquivo;
 
     adicionar_elemento_lista_mensagem(lista_tarefa, tarefa);
 }
 
-void completar_tarefa(lista_mensagem_t *lista_tarefa, const unsigned usuario, const unsigned id_arquivo)
+void completar_tarefa(lista_mensagem_t *lista_tarefa, const unsigned id_usuario, const unsigned id_arquivo)
 {
     par_usuario_arquivo_t tarefa;
 
-    tarefa.usuario = usuario;
+    tarefa.id_usuario = id_usuario;
     tarefa.id_arquivo = id_arquivo;
 
     const par_usuario_arquivo_t *tarefa_a_completar = (const par_usuario_arquivo_t *) extrair_elemento_lista_mensagem(lista_tarefa, &tarefa, (bool (*) (const void *, const void *)) comparar_par_usuario_arquivo);
 
     if (tarefa_a_completar == NULL)
     {
-        printf("\nERRO: Falha em extrair a tarefa <usuario: %u, arquivo: %u> da lista de tarefas. [info_usuario.c::completar_tarefa]\n\n", usuario, id_arquivo);
+        printf("[[ERRO]] Falha em extrair a tarefa <id_usuario: %u, arquivo: %u> da lista de tarefas. [info_usuario.c::completar_tarefa]\n\n", id_usuario+1, id_arquivo+1);
     }
 
     else free((par_usuario_arquivo_t *) tarefa_a_completar);

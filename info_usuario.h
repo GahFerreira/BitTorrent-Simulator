@@ -24,14 +24,23 @@ struct info_arquivos
 {
     unsigned n_arquivos, n_vazios, n_em_progresso, n_completos;
     estado_progresso_t *estado_arquivos;
+
+    pthread_mutex_t mutex_info_arquivos;
 };
 
 struct info_usuario
 {
     unsigned id_usuario;
 
+    /*
+        `info_arquivos` guarda as informações dos arquivos do usuário.
+
+        Essas informações incluem o número de arquivos em cada estado
+        e o estado de cada arquivo.
+
+        É necessário trancar `info_arquivos` para fazer o acesso às suas variáveis.
+    */
     info_arquivos_t info_arquivos;
-    dado_concorrente_t controlador_info_arquivos;
 
     lista_mensagem_t lista_tarefas;
 };
@@ -44,30 +53,29 @@ bool inicializar_info_arquivos(info_arquivos_t *info_arquivos, unsigned (funcao_
 
 // Métodos de interação com info_arquivos.
 
-/*
-    As funções de abrir e fechar a lista são para controle de acesso concorrente.
+// Tranca o mutex de info_arquivos.
+void trancar_info_arquivos(info_arquivos_t *info_arquivos);
+// Destranca o mutex de info_arquivos.
+void destrancar_info_arquivos(info_arquivos_t *info_arquivos);
 
-    Em outras estruturas, é possível fazer esse controle internamente às funções,
-    porém em `info_arquivos_t` é preciso fazer diversos acessos distintos para
-    concluir uma operação. 
-*/
-void abrir_info_arquivos(dado_concorrente_t *controlador_info_arquivos); 
-void fechar_info_arquivos(dado_concorrente_t *controlador_info_arquivos);
+// Função interna que só deve ser chamada com o mutex de info_arquivos bloqueado.
+void obter_arquivos_generico(info_arquivos_t *info_arquivos, unsigned vetor_arquivos[], estado_progresso_t estado_escolhido);
+// Preenche cada posição de `arquivos_faltantes` com o id de um arquivo que está `VAZIO`.
+void obter_arquivos_ausentes(info_arquivos_t *info_arquivos, unsigned arquivos_faltantes[]);
+// Preenche cada posição de `arquivos_em_progresso` com o id de um arquivo que está `EM_PROGRESSO`.
+void obter_arquivos_em_progresso(info_arquivos_t *info_arquivos, unsigned arquivos_em_progresso[]);
+// Preenche cada posição de `arquivos_completos` com o id de um arquivo que está `COMPLETO`.
+void obter_arquivos_completos(info_arquivos_t *info_arquivos, unsigned arquivos_completos[]);
 
-/*
-    Preenche cada posição de `arquivos_em_progresso` com um valor 
-    referente a um arquivo que está `EM_PROGRESSO`.
+estado_progresso_t obter_estado_arquivo(info_arquivos_t *info_arquivos, const unsigned id_arquivo);
 
-    Pressupõe que o `dado_concorrente_t` já esteja bloqueado.
+bool arquivo_para_em_progresso(info_arquivos_t *info_arquivos, const unsigned id_usuario, const unsigned id_arquivo);
+// bool arquivo_para_completo();
 
-    TODO: Modificar semanticamente essa função: talvez trocar dado_concorrente_t por info_arquivos_t?
-*/
-void obter_arquivos_em_progresso(const dado_concorrente_t *controlador_info_arquivos, unsigned arquivos_em_progresso[]);
-
-estado_progresso_t obter_estado_arquivo(dado_concorrente_t *controlador_info_arquivos, const unsigned id_arquivo);
+// Métodos de iteração com `lista_tarefa`.
 
 // Para cada chamada de `adicionar_tarefa`, deve-se ter uma chamada de `completar_tarefa`.
-void adicionar_tarefa(lista_mensagem_t *lista_tarefa, const unsigned usuario, const unsigned id_arquivo);
-void completar_tarefa(lista_mensagem_t *lista_tarefa, const unsigned usuario, const unsigned id_arquivo);
+void adicionar_tarefa(lista_mensagem_t *lista_tarefa, const unsigned id_usuario, const unsigned id_arquivo);
+void completar_tarefa(lista_mensagem_t *lista_tarefa, const unsigned id_usuario, const unsigned id_arquivo);
 
 #endif // INFO_USUARIO_H

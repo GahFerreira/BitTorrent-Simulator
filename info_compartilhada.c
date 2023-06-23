@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "info_compartilhada.h"
 #include "par_usuario_arquivo.h"
@@ -39,9 +40,39 @@ void construir_info_compartilhada(info_compartilhada_t *informacoes_compartilhad
 
 void enviar_solicitacao_arquivo(info_compartilhada_t *info_compartilhada, const unsigned usuario_fonte, const unsigned id_arquivo, const unsigned usuario_destino)
 {
+    // Tratamento de erros.
+    if (usuario_fonte == usuario_destino)
+    {
+        printf("[[ERRO]] Usuario %u solicitou arquivo %u para si mesmo.[info_compartilhada::enviar_solicitacao_arquivo]\n\n", usuario_fonte+1, id_arquivo+1);
+
+        return;
+    }
+
+    if (usuario_fonte >= info_compartilhada->n_usuarios)
+    {
+        printf("[[ERRO]] Solicitacao de arquivo por usuario %u, mas existem apenas %u usuarios.[info_compartilhada::enviar_solicitacao_arquivo]\n\n", usuario_fonte+1, info_compartilhada->n_usuarios);
+
+        return;
+    }
+
+    if (usuario_destino >= info_compartilhada->n_usuarios)
+    {
+        printf("[[ERRO]] Solicitacao de arquivo enviada ao usuario %u, mas existem apenas %u usuarios.[info_compartilhada::enviar_solicitacao_arquivo]\n\n", usuario_destino+1, info_compartilhada->n_usuarios);
+
+        return;
+    }
+
+    if (id_arquivo >= info_compartilhada->n_arquivos)
+    {
+        printf("[[ERRO]] Solicitacao de arquivo com id %u, mas existem apenas %u arquivos.[info_compartilhada::enviar_solicitacao_arquivo]\n\n", id_arquivo+1, info_compartilhada->n_arquivos);
+
+        return;
+    }
+    // Fim do tratamento de erros.
+
     par_usuario_arquivo_t *requisicao = (par_usuario_arquivo_t *) calloc(1, sizeof(par_usuario_arquivo_t));
     requisicao->id_arquivo = id_arquivo;
-    requisicao->usuario = usuario_fonte;
+    requisicao->id_usuario = usuario_fonte;
 
     adicionar_elemento_lista_mensagem(&info_compartilhada->solicitacoes_arquivo[usuario_destino], requisicao);
 }

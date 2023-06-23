@@ -69,7 +69,7 @@ const void *extrair_elemento_lista_mensagem(lista_mensagem_t *lista_mensagem, co
     pthread_mutex_unlock(&lista_mensagem->mutex_mensagem);
 
     // Fora do lock pois não afeta o estado de `lista_mensagem`.
-    if (resultado == NULL) printf("\nAVISO: Falha em extrair elemento de lista de mensagens. [lista_mensagem::extrair_elemento_lista_mensagem]\n\n");
+    if (resultado == NULL) printf("AVISO: Falha em extrair elemento de lista de mensagens. [lista_mensagem::extrair_elemento_lista_mensagem]\n\n");
 
     return resultado;
 }
@@ -90,7 +90,7 @@ const void *extrair_primeiro_lista_mensagem(lista_mensagem_t *lista_mensagem)
 
         // Fora do lock pois não afeta o estado de `lista_mensagem`.
 
-        if (resultado == NULL) printf("\nAVISO: Falha em extrair primeiro elemento de lista de mensagens. [lista_mensagem::extrair_primeiro_lista_mensagem]\n\n");
+        if (resultado == NULL) printf("AVISO: Falha em extrair primeiro elemento de lista de mensagens. [lista_mensagem::extrair_primeiro_lista_mensagem]\n\n");
     */
 
     return resultado;

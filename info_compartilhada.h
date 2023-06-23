@@ -17,6 +17,7 @@ struct info_compartilhada
 {
     // Estados de execução.
     bool finalizar_execucao;
+    
     unsigned n_usuarios_finalizados;
     dado_concorrente_t controlador_n_usuarios_finalizados;
 
