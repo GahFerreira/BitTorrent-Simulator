@@ -20,10 +20,12 @@ buffer_t *construir_buffer(const unsigned n_fragmentos, const unsigned tam_fragm
 
     novo_buffer->tam_arquivo = 0;
     novo_buffer->nome_arquivo[0] = '\0';
+
     novo_buffer->dados_arquivo_obtidos = false;
     novo_buffer->arquivo_criado = false;
+    novo_buffer->primeira_execucao = true;
 
-    inicializar_lista_mensagem(&novo_buffer->fragmentos_necessarios);
+    inicializar_lista_encadeada(&novo_buffer->fragmentos_necessarios);
 
     novo_buffer->mutex_buffer = PTHREAD_MUTEX_INITIALIZER;
 
@@ -46,4 +48,59 @@ void informar_dados_arquivo(buffer_t *buffer, const unsigned tam_arquivo, const 
     strcpy(buffer->nome_arquivo, nome_arquivo);
 
     buffer->dados_arquivo_obtidos = true;
+}
+
+void atualizar_buffer(buffer_t *buffer)
+{
+    if (buffer->primeira_execucao == true)
+    {
+        buffer->id_primeiro_fragmento_atual = 0;
+
+        buffer->primeira_execucao = false;
+    }
+
+    else buffer->id_primeiro_fragmento_atual += buffer->n_fragmentos;
+
+    /*
+        Atualiza o número de fragmentos ausentes no buffer. 
+        Importante para os fragmentos finais, que podem não encher completamente o buffer.
+    */
+    const unsigned n_bytes_ja_gravados = buffer->id_primeiro_fragmento_atual * buffer->tam_fragmento;
+    const unsigned n_bytes_para_gravar = buffer->tam_arquivo - n_bytes_ja_gravados;
+
+    buffer->n_fragmentos_ausentes = n_bytes_para_gravar / buffer->tam_fragmento;
+
+    if (buffer->n_fragmentos_ausentes > buffer->n_fragmentos)
+    {
+        buffer->n_fragmentos_ausentes = buffer->n_fragmentos;
+    }
+
+    for (unsigned i_fragmento_ausente = 0; i_fragmento_ausente < buffer->n_fragmentos_ausentes; ++i_fragmento_ausente)
+    {
+        adicionar_id_fragmento_necessario_na_lista(buffer, buffer->id_primeiro_fragmento_atual + i_fragmento_ausente);
+    }
+}
+
+void adicionar_id_fragmento_necessario_na_lista(buffer_t *buffer, const unsigned id_fragmento)
+{
+    unsigned *novo_fragmento = malloc(sizeof(unsigned));
+    *novo_fragmento = id_fragmento;
+    adicionar_elemento_lista_encadeada(&buffer->fragmentos_necessarios, novo_fragmento);
+}
+
+unsigned obter_id_fragmento_necessario(buffer_t *buffer)
+{
+    const unsigned *id_fragmento_necessario = extrair_primeiro_lista_encadeada(&buffer->fragmentos_necessarios);
+    unsigned resposta = *id_fragmento_necessario;
+
+    free((unsigned *) id_fragmento_necessario);
+
+    return resposta;
+}
+
+void gravar_fragmento(buffer_t *buffer, const unsigned id_fragmento, byte fragmento[])
+{
+    memcpy(&acessar_fragmento(buffer, id_fragmento), fragmento, sizeof(byte) * buffer->tam_fragmento);
+
+    --buffer->n_fragmentos_ausentes;
 }

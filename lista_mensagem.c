@@ -84,7 +84,7 @@ const void *extrair_primeiro_lista_mensagem(lista_mensagem_t *lista_mensagem)
 
     pthread_mutex_unlock(&lista_mensagem->mutex_mensagem);
 
-    #if DEBUG >= 7
+    #if DEBUG >= 8
     /*
         O comportamento de extrair elemento em lista vazia é esperado e usado em algumas funções.
 

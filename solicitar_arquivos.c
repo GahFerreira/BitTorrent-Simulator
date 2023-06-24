@@ -90,7 +90,7 @@ void *solicitar_arquivos(info_total_t *info_total)
     }
 
     #if DEBUG >= 1
-    printf("[DEBUG-1] Todos os arquivos do usuario %u requisitados. Encerrando sua thread de solicitacao de arquivos.\n\n", id_usuario);
+    printf("[DEBUG-1] Todos os arquivos do usuario %u requisitados. Encerrando sua thread de solicitacao de arquivos.\n\n", id_usuario+1);
     #endif
 
     pthread_exit(NULL);
