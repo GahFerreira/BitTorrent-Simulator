@@ -9,7 +9,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include "dado_concorrente.h"
 #include "manipulador_arquivos.h"
 #include "lista_mensagem.h"
 

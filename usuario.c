@@ -18,7 +18,8 @@ void *iniciar_usuario(info_compartilhada_t *info_compartilhada)
 
     if (!inicializar_usuario(&info_usuario, info_compartilhada))
     {
-        printf("[[ERRO]] Falha em inicializar usuario %u. Finalizando usuario. [usuario::iniciar_usuario]\n\n", (unsigned) pthread_self());
+        // O id_usuario é garantido de ser inicializado.
+        printf("[[ERRO]] Falha em inicializar usuario %u. Finalizando usuario. [usuario::iniciar_usuario]\n\n", info_usuario.id_usuario);
 
         // TODO: finalizar_usuario()
 
@@ -44,11 +45,16 @@ void *iniciar_usuario(info_compartilhada_t *info_compartilhada)
 
     pthread_join(th_processar_mensagens, NULL);
     pthread_join(th_solicitar_arquivos, NULL);
+    pthread_join(th_gerenciar_buffers, NULL);
 
     meu_sleep(3000);
 
     // Usuário remove a sua conexão do programa.
+    printf("Usuario %u comeca a desconectar.\n\n", info_usuario.id_usuario);
+
     extrair_elemento_lista_mensagem(&info_compartilhada->usuarios_conectados, &info_usuario.id_usuario, (bool (*) (const void *, const void *)) comparar_unsigned);
+
+
 
     /// PARTE X: Destruir estruturas de dados.
     //finalizar_usuario(&info_usuario, &manipulador_arquivos);
@@ -57,13 +63,13 @@ void *iniciar_usuario(info_compartilhada_t *info_compartilhada)
     return NULL; // Sem retorno.
 }
 
-bool inicializar_usuario(info_usuario_t *informacoes_usuario, const info_compartilhada_t *info_compartilhada)
+bool inicializar_usuario(info_usuario_t *informacoes_usuario, info_compartilhada_t *info_compartilhada)
 {
 	#if DEBUG >= 4
 	printf("[DEBUG-3] Novo usuario a ser inicializado. Id: %u\n\n", (unsigned) pthread_self()-1);
 	#endif
 
-    if ( inicializar_info_usuario(informacoes_usuario, (unsigned) pthread_self()-1, info_compartilhada->n_arquivos, info_compartilhada->max_caracteres_dir_usuario) == false )
+    if ( inicializar_info_usuario(informacoes_usuario, obter_id_prox_usuario(info_compartilhada), info_compartilhada->n_arquivos, info_compartilhada->max_caracteres_dir_usuario) == false )
     {
         printf("[[ERRO]] Falha em inicializar info_usuario do usuario %u.[usuario::inicializar_usuario]\n\n", informacoes_usuario->id_usuario+1);
 

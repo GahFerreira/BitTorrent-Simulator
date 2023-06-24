@@ -103,6 +103,12 @@ bool inicializar_estado_arquivos(info_arquivos_t *info_arquivos, unsigned (funca
         {
             printf("[[ERRO]] Falha ao inicializar estados de arquivos. [info_usuario::inicializar_estado_arquivos]\n\n");
 
+            // Libera a memória de `nomes_arquivos`.
+            for (unsigned i_arquivo = 0; i_arquivo < manipulador_arquivos->n_arquivos_diretorio; ++i_arquivo)
+            {
+                free(nomes_arquivos[i_arquivo]);
+            }
+
             return false;
         }
 
@@ -127,6 +133,17 @@ bool inicializar_estado_arquivos(info_arquivos_t *info_arquivos, unsigned (funca
     for (unsigned i_arquivo = 0; i_arquivo < manipulador_arquivos->n_arquivos_diretorio; ++i_arquivo)
     {
         id_arquivo = funcao_conversora(nomes_arquivos[i_arquivo]);
+
+        /*
+            Supõe-se que se for passado o número de arquivos igual a X,
+            o arquivo "file{X+1}" não deverá ser contado.
+        */
+        if (id_arquivo >= info_arquivos->n_arquivos) 
+        {
+            printf("[AVISO] O numero de arquivos determinado foi %u, entretanto o arquivo %s foi encontrado no diretorio %s, e nao sera considerado.\n\n", info_arquivos->n_arquivos, nomes_arquivos[i_arquivo], manipulador_arquivos->nome_diretorio);
+
+            continue;
+        }
 
         // Realiza o free na primeira oportunidade possível.
         free(nomes_arquivos[i_arquivo]);

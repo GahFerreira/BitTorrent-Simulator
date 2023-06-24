@@ -5,7 +5,7 @@
 #include "info_compartilhada.h"
 #include "util.h"
 
-void obter_parametros_invocacao(const int argc, const char * const *argv, unsigned *n_usuarios, unsigned *n_max_arquivos, unsigned *tam_fragmento, unsigned *tam_buffer)
+void obter_parametros_invocacao(const int argc, const char * const *argv, unsigned *n_usuarios, unsigned *n_max_arquivos, unsigned *tam_fragmento, unsigned *n_fragmentos_buffer)
 {
     switch(argc)
     {
@@ -15,7 +15,7 @@ void obter_parametros_invocacao(const int argc, const char * const *argv, unsign
             *n_usuarios = 3;
             *n_max_arquivos = 6;
             *tam_fragmento = 4;
-            *tam_buffer = 8;
+            *n_fragmentos_buffer = 8;
 
             printf("Usando valores de TESTE:\n");
 
@@ -30,7 +30,7 @@ void obter_parametros_invocacao(const int argc, const char * const *argv, unsign
             sscanf(argv[1], "%u", n_usuarios);
             sscanf(argv[2], "%u", n_max_arquivos);
             sscanf(argv[3], "%u", tam_fragmento);
-            sscanf(argv[4], "%u", tam_buffer);
+            sscanf(argv[4], "%u", n_fragmentos_buffer);
 
             break;
         }
@@ -47,7 +47,7 @@ void obter_parametros_invocacao(const int argc, const char * const *argv, unsign
     printf("Numero de Usuarios: %u\n", *n_usuarios);
     printf("Numero Maximo de Arquivos: %u\n", *n_max_arquivos);
     printf("Tamanho por Fragmento: %u bytes\n", *tam_fragmento);
-    printf("Tamanho Buffer: %u fragmentos\n\n", *tam_buffer);
+    printf("Numero de Fragmentos do Buffer: %u fragmentos\n\n", *n_fragmentos_buffer);
 }
 
 int main(int argc, char *argv[])
@@ -57,12 +57,12 @@ int main(int argc, char *argv[])
     semear_numeros_aleatorios();
 
     // Parâmetros de invocação.
-    unsigned n_usuarios, n_max_arquivos, tam_fragmento, tam_buffer;
-    obter_parametros_invocacao(argc, (const char * const *) argv, &n_usuarios, &n_max_arquivos, &tam_fragmento, &tam_buffer);
+    unsigned n_usuarios, n_max_arquivos, tam_fragmento, n_fragmentos_buffer;
+    obter_parametros_invocacao(argc, (const char * const *) argv, &n_usuarios, &n_max_arquivos, &tam_fragmento, &n_fragmentos_buffer);
 
     // Informações compartilhadas entre as threads.
     info_compartilhada_t compartilhado;
-    inicializar_info_compartilhada(&compartilhado, n_usuarios, n_max_arquivos);
+    inicializar_info_compartilhada(&compartilhado, n_usuarios, n_max_arquivos, n_fragmentos_buffer, tam_fragmento);
 
     // Instanciação das threads a serem usadas.
     pthread_t usuario[n_usuarios];
@@ -72,6 +72,8 @@ int main(int argc, char *argv[])
     {
         printf("Criacao do usuario %u\n\n", i_usuario+1);
         pthread_create(&usuario[i_usuario], NULL, (void * (*)(void *)) iniciar_usuario, (void *) &compartilhado);
+
+        meu_sleep(300);
     }
 
     // Espera todas as threads concluírem (necessário pois `compartilhado` é local da main).

@@ -62,7 +62,7 @@ void *solicitar_arquivos(info_total_t *info_total)
     while (info_total->info_compartilhada->finalizar_execucao == false && n_arquivos_ausentes > 0)
     {
         #if DEBUG >= 5
-        printf("[DEBUG-1] Usuario %u tenta solicitar arquivos.\n\n", id_usuario+1);
+        printf("[DEBUG-5] Usuario %u tenta solicitar arquivos.\n\n", id_usuario+1);
         #endif
 
         const unsigned chance = 100 / n_arquivos_ausentes;
@@ -74,19 +74,24 @@ void *solicitar_arquivos(info_total_t *info_total)
                 if (aleatorio(1, 100) <= chance) 
                 {
                     #if DEBUG >= 2
-                    printf("[DEBUG-1] Usuario %u solicita arquivo %u.\n\n", id_usuario+1, i_arquivo+1);
+                    printf("[DEBUG-2] Usuario %u solicita arquivo %u.\n\n", id_usuario+1, i_arquivo+1);
                     #endif
 
                     arquivos_ausentes[i_arquivo] = false;
+                    --n_arquivos_ausentes;
 
                     solicitar_arquivo(info_total->info_compartilhada, &info_total->info_usuario->info_arquivos, id_usuario, i_arquivo);
                 }
             }
             
         }
-
+        
         meu_sleep(3000 + aleatorio(0, 7000));
     }
+
+    #if DEBUG >= 1
+    printf("[DEBUG-1] Todos os arquivos do usuario %u requisitados. Encerrando sua thread de solicitacao de arquivos.\n\n", id_usuario);
+    #endif
 
     pthread_exit(NULL);
 

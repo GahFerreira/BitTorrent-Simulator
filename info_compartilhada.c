@@ -4,15 +4,20 @@
 #include "info_compartilhada.h"
 #include "par_usuario_arquivo.h"
 
-void inicializar_info_compartilhada(info_compartilhada_t *info_compartilhada, const unsigned n_usuarios, const unsigned n_arquivos)
+void inicializar_info_compartilhada(info_compartilhada_t *info_compartilhada, const unsigned n_usuarios, const unsigned n_arquivos, const unsigned n_fragmentos_buffer, const unsigned tam_fragmento)
 {
     info_compartilhada->finalizar_execucao = false;
     
     info_compartilhada->n_usuarios_finalizados = 0;
-    inicializar_dado_concorrente(&info_compartilhada->controlador_n_usuarios_finalizados, &info_compartilhada->n_usuarios_finalizados);
+    info_compartilhada->mutex_n_usuarios_finalizados = PTHREAD_MUTEX_INITIALIZER;
+
+    info_compartilhada->id_prox_usuario = 0;
+    info_compartilhada->mutex_id_prox_usuario = PTHREAD_MUTEX_INITIALIZER;
 
     info_compartilhada->n_usuarios = n_usuarios;
     info_compartilhada->n_arquivos = n_arquivos;
+    info_compartilhada->n_fragmentos_buffer = n_fragmentos_buffer;
+    info_compartilhada->tam_fragmento = tam_fragmento;
 
     // Calcula o chão de `log_10(n_usuarios) +1`.
     unsigned max_caracteres_dir_usuario = 0;
@@ -48,6 +53,21 @@ void inicializar_info_compartilhada(info_compartilhada_t *info_compartilhada, co
             info_compartilhada->buffers_usuarios[i_usuario][i_arquivo] = NULL;
         }
     }
+}
+
+unsigned obter_id_prox_usuario(info_compartilhada_t *info_compartilhada)
+{
+    unsigned resultado;
+
+    pthread_mutex_lock(&info_compartilhada->mutex_id_prox_usuario);
+
+    resultado = info_compartilhada->id_prox_usuario;
+
+    ++info_compartilhada->id_prox_usuario;
+
+    pthread_mutex_unlock(&info_compartilhada->mutex_id_prox_usuario);
+
+    return resultado;
 }
 
 void enviar_solicitacao_arquivo(info_compartilhada_t *info_compartilhada, const unsigned usuario_fonte, const unsigned id_arquivo, const unsigned usuario_destino)
@@ -115,6 +135,10 @@ bool criar_buffer(info_compartilhada_t *info_compartilhada, const unsigned id_us
 
         return false;
     }
+
+    #if DEBUG >= 6
+    printf("[DEBUG-6] Construcao de buffer para receber arquivo %u do usuario %u.\n\n", id_arquivo+1, +1);
+    #endif
 
     buffer_arquivo = construir_buffer(info_compartilhada->n_fragmentos_buffer, info_compartilhada->tam_fragmento);
 

@@ -16,7 +16,7 @@ FLAGS_EXTRAS = -g -D_GLIBCOMPILADOR_DEBUG -D_GLIBCOMPILADOR_DEBUG_PEDANTIC -D_FO
 
 FLAGS = $(FLAGS_BASICAS) $(FLAGS_REGULARES) $(FLAGS_EXTRAS)
 
-TODOS_PONTO_O = util.o dado_concorrente.o lista_encadeada.o lista_mensagem.o buffer.o manipulador_arquivos.o info_compartilhada.o info_usuario.o info_total.o gerenciar_buffers.o solicitar_arquivos.o processamento_mensagens.o par_usuario_arquivo.o usuario.o main.o
+TODOS_PONTO_O = util.o lista_encadeada.o lista_mensagem.o buffer.o manipulador_arquivos.o info_compartilhada.o info_usuario.o info_total.o gerenciar_buffers.o solicitar_arquivos.o processamento_mensagens.o par_usuario_arquivo.o usuario.o main.o
 
 # Regras
 
@@ -107,9 +107,6 @@ lista_encadeada.o: lista_encadeada.c lista_encadeada.h
 
 manipulador_arquivos.o: manipulador_arquivos.c manipulador_arquivos.h
 	$(COMPILADOR) $(FLAGS) -c manipulador_arquivos.c
-
-dado_concorrente.o: dado_concorrente.c dado_concorrente.h
-	$(COMPILADOR) $(FLAGS) -c dado_concorrente.c
 
 util.o: util.c util.h
 	$(COMPILADOR) $(FLAGS) -c util.c

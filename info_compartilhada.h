@@ -8,7 +8,6 @@
 
 #include <stdbool.h>
 
-#include "dado_concorrente.h"
 #include "lista_mensagem.h"
 #include "buffer.h"
 
@@ -20,7 +19,10 @@ struct info_compartilhada
     bool finalizar_execucao;
     
     unsigned n_usuarios_finalizados;
-    dado_concorrente_t controlador_n_usuarios_finalizados;
+    pthread_mutex_t mutex_n_usuarios_finalizados;
+
+    unsigned id_prox_usuario;
+    pthread_mutex_t mutex_id_prox_usuario;
 
     unsigned n_usuarios;
     unsigned n_arquivos;
@@ -57,7 +59,9 @@ struct info_compartilhada
     buffer_t ***buffers_usuarios;
 };
 
-void inicializar_info_compartilhada(info_compartilhada_t *informacoes_compartilhadas, const unsigned n_usuarios, const unsigned n_arquivos);
+void inicializar_info_compartilhada(info_compartilhada_t *info_compartilhada, const unsigned n_usuarios, const unsigned n_arquivos, const unsigned n_fragmentos_buffer, const unsigned tam_fragmento);
+
+unsigned obter_id_prox_usuario(info_compartilhada_t *info_compartilhada);
 
 /*
     O `usuario_fonte` envia uma mensagem ao `usuario_destino` pedindo o arquivo cujo id é `id_arquivo`.
