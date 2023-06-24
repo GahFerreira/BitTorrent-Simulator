@@ -4,17 +4,34 @@
 
 #include "info_usuario.h"
 #include "par_usuario_arquivo.h"
+#include "util.h"
 
-void inicializar_info_usuario(info_usuario_t *info_usuario, const unsigned id, const unsigned n_arquivos)
+bool inicializar_info_usuario(info_usuario_t *info_usuario, const unsigned id_usuario, const unsigned n_arquivos, const unsigned max_caracteres_dir_usuario)
 {
-    info_usuario->id_usuario = id;
-
-    inicializar_info_arquivos(&info_usuario->info_arquivos, n_arquivos);
+    info_usuario->id_usuario = id_usuario;
 
     inicializar_lista_mensagem(&info_usuario->lista_tarefas);
+
+    // Novo escopo para desalocar `nome_diretorio` assim que possível.
+    {
+        // Obtém o nome do diretório para inicializar o manipulador de arquivos.
+        char nome_diretorio[max_caracteres_dir_usuario];
+        id_usuario_para_nome_diretorio(nome_diretorio, id_usuario);
+
+        inicializar_manipulador_arquivos(&info_usuario->manipulador_arquivos, nome_diretorio, max_caracteres_dir_usuario);
+    }
+
+    if ( inicializar_info_arquivos(&info_usuario->info_arquivos, &info_usuario->manipulador_arquivos, n_arquivos) == false )
+    {
+        printf("[[ERRO]] Falha em inicializar info_arquivos do usuario %u.[info_usuario::inicializar_info_usuario]\n\n", id_usuario+1);
+
+        return false;
+    }
+
+    return true;
 }
 
-void inicializar_info_arquivos(info_arquivos_t *info_arquivos, const unsigned n_arquivos)
+bool inicializar_info_arquivos(info_arquivos_t *info_arquivos, manipulador_arquivos_t *manipulador_arquivos, const unsigned n_arquivos)
 {
     info_arquivos->n_arquivos = n_arquivos;
     info_arquivos->n_vazios = n_arquivos;
@@ -23,7 +40,16 @@ void inicializar_info_arquivos(info_arquivos_t *info_arquivos, const unsigned n_
 
     info_arquivos->estado_arquivos = (estado_progresso_t *) calloc(n_arquivos, sizeof(estado_progresso_t));
 
+    if (!inicializar_estado_arquivos(info_arquivos, nome_arquivo_para_id, manipulador_arquivos))
+    {
+        printf("[[ERRO]] Falha em inicializar estados dos arquivos do diretorio %s. [info_usuario::inicializar_info_arquivos]\n\n", manipulador_arquivos->nome_diretorio);
+
+        return false;
+    }
+
     info_arquivos->mutex_info_arquivos = PTHREAD_MUTEX_INITIALIZER;
+
+    return true;
 }
 
 bool inicializar_estado_arquivos(info_arquivos_t *info_arquivos, unsigned (funcao_conversora) (const char[]), manipulador_arquivos_t *manipulador_arquivos)
@@ -33,9 +59,9 @@ bool inicializar_estado_arquivos(info_arquivos_t *info_arquivos, unsigned (funca
         Poderia tentar abrir o diretório para checagem de erro, mas supondo que esteja
         funcionando corretamente, seria uma perda de tempo tentar abrí-lo.
     */
-    if (manipulador_arquivos->n_arquivos == 0) return true;
+    if (manipulador_arquivos->n_arquivos_diretorio == 0) return true;
 
-    char *nomes_arquivos[manipulador_arquivos->n_arquivos];
+    char *nomes_arquivos[manipulador_arquivos->n_arquivos_diretorio];
     unsigned tam_maior_nome_esperado, tam_maior_nome = 64;
 
     /*
@@ -52,7 +78,7 @@ bool inicializar_estado_arquivos(info_arquivos_t *info_arquivos, unsigned (funca
         // Este `if` somente executa na segunda iteração do do-while, para evitar memory leak.
         if (tam_maior_nome > 64)
         {
-            for (unsigned i_arquivo = 0; i_arquivo < manipulador_arquivos->n_arquivos; ++i_arquivo)
+            for (unsigned i_arquivo = 0; i_arquivo < manipulador_arquivos->n_arquivos_diretorio; ++i_arquivo)
             {
                 free(nomes_arquivos[i_arquivo]);
             }
@@ -60,17 +86,17 @@ bool inicializar_estado_arquivos(info_arquivos_t *info_arquivos, unsigned (funca
 
         /*
             Inicialmente, espera-se que o maior nome seja de 64 caracteres.
-            Porém, caso `obter_lista_arquivos` retorne um valor maior,
+            Porém, caso `obter_nomes_arquivos_diretorio` retorne um valor maior,
             `nomes_arquivos` é alocado usando esse valor maior para receber os nomes.
         */
         tam_maior_nome_esperado = tam_maior_nome;
 
-        for (unsigned i_arquivo = 0; i_arquivo < manipulador_arquivos->n_arquivos; ++i_arquivo)
+        for (unsigned i_arquivo = 0; i_arquivo < manipulador_arquivos->n_arquivos_diretorio; ++i_arquivo)
         {
             nomes_arquivos[i_arquivo] = (char *) malloc(tam_maior_nome_esperado * sizeof(char));
         }
 
-        tam_maior_nome = obter_lista_arquivos(manipulador_arquivos, nomes_arquivos, 64);
+        tam_maior_nome = obter_nomes_arquivos_diretorio(manipulador_arquivos, nomes_arquivos, 64);
 
         // Erro de abertura de diretório.
         if (tam_maior_nome == 0) 
@@ -84,9 +110,9 @@ bool inicializar_estado_arquivos(info_arquivos_t *info_arquivos, unsigned (funca
 
     #if DEBUG >= 1
     {
-        char dbg_para_printar[manipulador_arquivos->n_arquivos * tam_maior_nome + 128];
-        snprintf(dbg_para_printar, 128, "\n[DEBUG-1] %u arquivos inicialmente no diretorio %s\n", manipulador_arquivos->n_arquivos, manipulador_arquivos->nome_diretorio);
-        for (unsigned i_arquivo = 0; i_arquivo < manipulador_arquivos->n_arquivos; ++i_arquivo)
+        char dbg_para_printar[manipulador_arquivos->n_arquivos_diretorio * tam_maior_nome + 128];
+        snprintf(dbg_para_printar, 128, "\n[DEBUG-1] %u arquivos inicialmente no diretorio %s\n", manipulador_arquivos->n_arquivos_diretorio, manipulador_arquivos->nome_diretorio);
+        for (unsigned i_arquivo = 0; i_arquivo < manipulador_arquivos->n_arquivos_diretorio; ++i_arquivo)
         {
             strcat(dbg_para_printar, nomes_arquivos[i_arquivo]);
             strcat(dbg_para_printar, "\n");
@@ -98,7 +124,7 @@ bool inicializar_estado_arquivos(info_arquivos_t *info_arquivos, unsigned (funca
     unsigned id_arquivo;
 
     // Preenche a lista de arquivos deste usuário marcando os arquivos já presentes em seu diretório.
-    for (unsigned i_arquivo = 0; i_arquivo < manipulador_arquivos->n_arquivos; ++i_arquivo)
+    for (unsigned i_arquivo = 0; i_arquivo < manipulador_arquivos->n_arquivos_diretorio; ++i_arquivo)
     {
         id_arquivo = funcao_conversora(nomes_arquivos[i_arquivo]);
 

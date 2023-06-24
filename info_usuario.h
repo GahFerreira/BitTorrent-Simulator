@@ -42,12 +42,22 @@ struct info_usuario
     */
     info_arquivos_t info_arquivos;
 
+    /*
+        `manipulador_arquivos` guarda as informações do diretório do usuário e oferece funções para
+        manipular os arquivos diretamente, como leituras e escritas.
+    */
+    manipulador_arquivos_t manipulador_arquivos;
+
+    /*
+        `lista_tarefas` guarda pares <id_usuario, id_arquivo> representando que o usuário atual está
+        ajudando o usuário de id `id_usuario` a completar o arquivo de id `id_arquivo`.
+    */
     lista_mensagem_t lista_tarefas;
 };
 
-void inicializar_info_usuario(info_usuario_t* info_usuario, const unsigned id, const unsigned n_arquivos);
+bool inicializar_info_usuario(info_usuario_t *info_usuario, const unsigned id_usuario, const unsigned n_arquivos, const unsigned max_caracteres_dir_usuario);
 
-void inicializar_info_arquivos(info_arquivos_t *info_arquivos, const unsigned n_arquivos);
+bool inicializar_info_arquivos(info_arquivos_t *info_arquivos, manipulador_arquivos_t *manipulador_arquivos, const unsigned n_arquivos);
 
 bool inicializar_estado_arquivos(info_arquivos_t *info_arquivos, unsigned (funcao_conversora) (const char[]), manipulador_arquivos_t *manipulador_arquivos);
 

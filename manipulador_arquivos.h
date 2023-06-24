@@ -9,7 +9,7 @@ typedef struct manipulador_arquivos manipulador_arquivos_t;
 struct manipulador_arquivos
 {
     char *nome_diretorio;
-    unsigned n_arquivos;
+    unsigned n_arquivos_diretorio;
 
     // Manipulador de diretórios.
     DIR *diretorio;
@@ -22,7 +22,7 @@ void inicializar_manipulador_arquivos(manipulador_arquivos_t *manipulador_arquiv
 bool abrir_diretorio(manipulador_arquivos_t *manipulador_arquivos);
 void fechar_diretorio(manipulador_arquivos_t *manipulador_arquivos);
 
-unsigned obter_numero_arquivos(manipulador_arquivos_t *manipulador_arquivos);
+unsigned obter_numero_arquivos_diretorio(manipulador_arquivos_t *manipulador_arquivos);
 
 /* 
   Obtém a lista de arquivos do diretório.
@@ -38,6 +38,6 @@ unsigned obter_numero_arquivos(manipulador_arquivos_t *manipulador_arquivos);
     Se o tamanho de algum arquivo do diretório for maior que o tamanho esperado,
     a função cessa sua execução.
 */
-unsigned obter_lista_arquivos(manipulador_arquivos_t *manipulador_arquivos, char **destino, const unsigned tam_max_nome_esperado);
+unsigned obter_nomes_arquivos_diretorio(manipulador_arquivos_t *manipulador_arquivos, char **destino, const unsigned tam_max_nome_esperado);
 
 #endif // MANIPULADOR_ARQUIVOS_H

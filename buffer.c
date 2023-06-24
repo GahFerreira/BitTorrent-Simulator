@@ -8,6 +8,9 @@ buffer_t *construir_buffer(const unsigned n_fragmentos, const unsigned tam_fragm
 
     novo_buffer->n_fragmentos = n_fragmentos;
     novo_buffer->n_fragmentos_ausentes = n_fragmentos;
+    novo_buffer->tam_fragmento = tam_fragmento;
+
+    inicializar_lista_mensagem(&novo_buffer->fragmentos_necessarios);
 
     novo_buffer->mutex_buffer = PTHREAD_MUTEX_INITIALIZER;
 

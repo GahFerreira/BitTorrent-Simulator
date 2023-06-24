@@ -1,10 +1,11 @@
 #ifdef _WIN32
-#include <Windows.h>
-#else
+#include <windows.h>
+#elif !_POSIX_C_SOURCE >= 199309L
 #include <unistd.h>
 #endif
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <stdbool.h>
 #include <time.h>
 
@@ -18,10 +19,21 @@ bool comparar_unsigned(const unsigned *a, const unsigned *b)
 
 void meu_sleep(unsigned milisegundos)
 {
+    // Windows
     #ifdef _WIN32
     Sleep(milisegundos);
+
+    // `nanosleep` está no posix.
+    #elif _POSIX_C_SOURCE >= 199309L
+    struct timespec ts;
+    ts.tv_sec = milliseconds / 1000;
+    ts.tv_nsec = (milliseconds % 1000) * 1000000;
+    nanosleep(&ts, NULL);
+
+    // `usleep` foi retirada do posix em 2008.
     #else
-    sleep(milisegundos / 1000);
+    if (milliseconds >= 1000) sleep(milliseconds / 1000);
+    usleep((milliseconds % 1000) * 1000);
     #endif
 }
 
@@ -33,4 +45,27 @@ void semear_numeros_aleatorios(void)
 unsigned aleatorio(unsigned minimo, unsigned maximo)
 {
     return minimo + ( (unsigned) rand() % (maximo-minimo+1) );
+}
+
+void id_usuario_para_nome_diretorio(char *destino, const unsigned id_usuario)
+{
+    sprintf(destino, "./U%u", id_usuario+1);
+}
+
+unsigned nome_arquivo_para_id(const char nome_arquivo[])
+{
+    unsigned pos_ponto;
+
+    // A primeira possível posição para o ponto é o 5o caractere do vetor.
+    for (pos_ponto = 5; nome_arquivo[pos_ponto] != '.'; ++pos_ponto);
+
+    // Converte 'X' de char[] para unsigned.
+    unsigned retorno = 0;
+    for (unsigned at = 4; at < pos_ponto; ++at)
+    {
+        retorno = retorno * 10 + ((unsigned) nome_arquivo[at] - '0');
+    }
+
+    // Retorna -1 porque o id do arquivo é 0-based, exceto nas operações com o diretório.
+    return retorno - 1;
 }

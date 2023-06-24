@@ -11,27 +11,28 @@
 #include "solicitar_arquivos.h"
 #include "gerenciar_buffers.h"
 
-void *iniciar_usuario(info_compartilhada_t *compartilhado)
+void *iniciar_usuario(info_compartilhada_t *info_compartilhada)
 {
     /* PARTE 1: Inicializações de estruturas de dados. */
-    info_usuario_t minhas_informacoes;
-    manipulador_arquivos_t manipulador_arquivos;
+    info_usuario_t info_usuario;
 
-    if (!inicializar_usuario(&minhas_informacoes, compartilhado, &manipulador_arquivos))
+    if (!inicializar_usuario(&info_usuario, info_compartilhada))
     {
         printf("[[ERRO]] Falha em inicializar usuario %u. Finalizando usuario. [usuario::iniciar_usuario]\n\n", (unsigned) pthread_self());
+
+        // TODO: finalizar_usuario()
 
         pthread_exit(NULL);
     }
 
     /* PARTE 2: Realiza os procedimentos de conexão. */
-    conectar_usuario(&minhas_informacoes, compartilhado);
+    conectar_usuario(&info_usuario, info_compartilhada);
 
     /* PARTE 3: Inicia a rotina principal. */
 
     info_total_t info_total;
-    info_total.info_compartilhada = compartilhado;
-    info_total.info_usuario = &minhas_informacoes;
+    info_total.info_compartilhada = info_compartilhada;
+    info_total.info_usuario = &info_usuario;
 
     pthread_t th_processar_mensagens, th_solicitar_arquivos, th_gerenciar_buffers; //th_enviar_fragmentos;
 
@@ -47,34 +48,24 @@ void *iniciar_usuario(info_compartilhada_t *compartilhado)
     meu_sleep(3000);
 
     // Usuário remove a sua conexão do programa.
-    extrair_elemento_lista_mensagem(&compartilhado->usuarios_conectados, &minhas_informacoes.id_usuario, (bool (*) (const void *, const void *)) comparar_unsigned);
+    extrair_elemento_lista_mensagem(&info_compartilhada->usuarios_conectados, &info_usuario.id_usuario, (bool (*) (const void *, const void *)) comparar_unsigned);
 
     /// PARTE X: Destruir estruturas de dados.
-    //finalizar_usuario(&minhas_informacoes, &manipulador_arquivos);
+    //finalizar_usuario(&info_usuario, &manipulador_arquivos);
     pthread_exit(NULL);
 
     return NULL; // Sem retorno.
 }
 
-bool inicializar_usuario(info_usuario_t *informacoes_usuario, const info_compartilhada_t *compartilhado, manipulador_arquivos_t *manipulador_arquivos)
+bool inicializar_usuario(info_usuario_t *informacoes_usuario, const info_compartilhada_t *info_compartilhada)
 {
 	#if DEBUG >= 4
 	printf("[DEBUG-3] Novo usuario a ser inicializado. Id: %u\n\n", (unsigned) pthread_self()-1);
 	#endif
 
-    inicializar_info_usuario(informacoes_usuario, (unsigned) pthread_self()-1, compartilhado->n_arquivos);
-
-    // Novo escopo temporário para evitar mais uma alocação dinâmica.
+    if ( inicializar_info_usuario(informacoes_usuario, (unsigned) pthread_self()-1, info_compartilhada->n_arquivos, info_compartilhada->max_caracteres_dir_usuario) == false )
     {
-        char nome_diretorio[compartilhado->max_caracteres_dir_usuario];
-        id_usuario_para_nome_diretorio(nome_diretorio, informacoes_usuario->id_usuario);
-
-        inicializar_manipulador_arquivos(manipulador_arquivos, nome_diretorio, compartilhado->max_caracteres_dir_usuario);
-    }
-
-    if (!inicializar_estado_arquivos(&informacoes_usuario->info_arquivos, nome_arquivo_para_id, manipulador_arquivos))
-    {
-        printf("[[ERRO]] Falha em inicializar estados de arquivos do usuario %u. [usuario::inicializar_usuario]\n\n", informacoes_usuario->id_usuario+1);
+        printf("[[ERRO]] Falha em inicializar info_usuario do usuario %u.[usuario::inicializar_usuario]\n\n", informacoes_usuario->id_usuario+1);
 
         return false;
     }
@@ -82,7 +73,7 @@ bool inicializar_usuario(info_usuario_t *informacoes_usuario, const info_compart
     return true;
 }
 
-// void finalizar_usuario(info_usuario_t *minhas_informacoes, manipulador_arquivos_t *manipulador_arquivos)
+// void finalizar_usuario(info_usuario_t *info_usuario, manipulador_arquivos_t *manipulador_arquivos)
 // {
 
 // }
@@ -91,7 +82,7 @@ bool inicializar_usuario(info_usuario_t *informacoes_usuario, const info_compart
   A implementação usa diretamente as funções de lista encadeada, pois precisa travar
   o mutex para realizar muitas operações.
 */
-void conectar_usuario(const info_usuario_t *informacoes_usuario, info_compartilhada_t *compartilhado)
+void conectar_usuario(const info_usuario_t *informacoes_usuario, info_compartilhada_t *info_compartilhada)
 {
     #if DEBUG >= 4
     printf("[DEBUG-3] Inicio da conexao do usuario %u\n\n", informacoes_usuario->id_usuario+1);
@@ -103,9 +94,9 @@ void conectar_usuario(const info_usuario_t *informacoes_usuario, info_compartilh
     */
 
     // LOCK
-    pthread_mutex_lock(&compartilhado->usuarios_conectados.mutex_mensagem);
+    pthread_mutex_lock(&info_compartilhada->usuarios_conectados.mutex_mensagem);
 
-    unsigned n_conectados = compartilhado->usuarios_conectados.mensagens.tamanho;
+    unsigned n_conectados = info_compartilhada->usuarios_conectados.mensagens.tamanho;
 
     /*  
       Vetor de ponteiros para unsigned. 
@@ -113,16 +104,16 @@ void conectar_usuario(const info_usuario_t *informacoes_usuario, info_compartilh
     */
     unsigned *usuarios_conectados[n_conectados];
 
-    obter_dados_lista_encadeada(&compartilhado->usuarios_conectados.mensagens, (const void **) &usuarios_conectados);
+    obter_dados_lista_encadeada(&info_compartilhada->usuarios_conectados.mensagens, (const void **) &usuarios_conectados);
 
     // O usuário adiciona a si próprio na lista compartilhada de usuários conectados.
-    adicionar_elemento_lista_encadeada(&compartilhado->usuarios_conectados.mensagens, &informacoes_usuario->id_usuario);
+    adicionar_elemento_lista_encadeada(&info_compartilhada->usuarios_conectados.mensagens, &informacoes_usuario->id_usuario);
 
     #if DEBUG >= 4
     printf("[DEBUG-3] Usuario %u parcialmente conectado. Avisando aos outros usuarios sobre sua conexao.\n\n", informacoes_usuario->id_usuario+1);
     #endif
 
-    pthread_mutex_unlock(&compartilhado->usuarios_conectados.mutex_mensagem);
+    pthread_mutex_unlock(&info_compartilhada->usuarios_conectados.mutex_mensagem);
     // UNLOCK
 
     /* 
@@ -138,35 +129,10 @@ void conectar_usuario(const info_usuario_t *informacoes_usuario, info_compartilh
           O usuário envia mensagem a esse usuário conectado, 
           dizendo que agora também está conectado. 
         */
-        adicionar_elemento_lista_mensagem(&compartilhado->novos_usuarios_conectados[usuario_atual], &informacoes_usuario->id_usuario);
+        adicionar_elemento_lista_mensagem(&info_compartilhada->novos_usuarios_conectados[usuario_atual], &informacoes_usuario->id_usuario);
     }
 
     #if DEBUG >= 4
     printf("[DEBUG-3] Usuario %u totalmente conectado. Demais usuarios avisados sobre sua conexao.\n\n", informacoes_usuario->id_usuario+1);
     #endif
-}
-
-// Funções de utilidade específica de usuário.
-
-void id_usuario_para_nome_diretorio(char *destino, const unsigned id_usuario)
-{
-    sprintf(destino, "./U%u", id_usuario+1);
-}
-
-unsigned nome_arquivo_para_id(const char nome_arquivo[])
-{
-    unsigned pos_ponto;
-
-    // A primeira possível posição para o ponto é o 5o caractere do vetor.
-    for (pos_ponto = 5; nome_arquivo[pos_ponto] != '.'; ++pos_ponto);
-
-    // Converte 'X' de char[] para unsigned.
-    unsigned retorno = 0;
-    for (unsigned at = 4; at < pos_ponto; ++at)
-    {
-        retorno = retorno * 10 + ((unsigned) nome_arquivo[at] - '0');
-    }
-
-    // Retorna -1 porque o id do arquivo é 0-based, exceto nas operações com o diretório.
-    return retorno - 1;
 }

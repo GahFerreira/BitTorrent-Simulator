@@ -11,7 +11,7 @@ void inicializar_manipulador_arquivos(manipulador_arquivos_t *manipulador_arquiv
     manipulador_arquivos->nome_diretorio = (char *) calloc(max_caracteres_nome_diretorio, sizeof(char)); 
     strcpy(manipulador_arquivos->nome_diretorio, nome_diretorio);
 
-    manipulador_arquivos->n_arquivos = obter_numero_arquivos(manipulador_arquivos);
+    manipulador_arquivos->n_arquivos_diretorio = obter_numero_arquivos_diretorio(manipulador_arquivos);
 
     manipulador_arquivos->diretorio = NULL;
     manipulador_arquivos->propriedades_arquivo = NULL;
@@ -36,11 +36,11 @@ void fechar_diretorio(manipulador_arquivos_t *manipulador_arquivos)
     manipulador_arquivos->diretorio = NULL;
 }
 
-unsigned obter_numero_arquivos(manipulador_arquivos_t *manipulador_arquivos)
+unsigned obter_numero_arquivos_diretorio(manipulador_arquivos_t *manipulador_arquivos)
 {
     if (!abrir_diretorio(manipulador_arquivos))
     {
-        printf("[[ERRO]] Falha em abrir diretorio %s. [manipulador_arquivos::obter_numero_arquivos]\n\n", manipulador_arquivos->nome_diretorio);
+        printf("[[ERRO]] Falha em abrir diretorio %s. [manipulador_arquivos::obter_numero_arquivos_diretorio]\n\n", manipulador_arquivos->nome_diretorio);
 
         return 0;
     }
@@ -61,11 +61,11 @@ unsigned obter_numero_arquivos(manipulador_arquivos_t *manipulador_arquivos)
     return i_arquivo;
 }
 
-unsigned obter_lista_arquivos(manipulador_arquivos_t *manipulador_arquivos, char **destino, const unsigned tam_max_nome_esperado)
+unsigned obter_nomes_arquivos_diretorio(manipulador_arquivos_t *manipulador_arquivos, char **destino, const unsigned tam_max_nome_esperado)
 {
     if (!abrir_diretorio(manipulador_arquivos))
     {
-        printf("[[ERRO]] Falha em inicializar lista de arquivos do diretorio %s. [manipulador_arquivos::obter_lista_arquivos]\n\n", manipulador_arquivos->nome_diretorio);
+        printf("[[ERRO]] Falha em inicializar lista de arquivos do diretorio %s. [manipulador_arquivos::obter_nomes_arquivos_diretorio]\n\n", manipulador_arquivos->nome_diretorio);
 
         return 0;
     }
