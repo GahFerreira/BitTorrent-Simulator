@@ -24,6 +24,9 @@ struct info_compartilhada
 
     unsigned n_usuarios;
     unsigned n_arquivos;
+    unsigned n_fragmentos_buffer;
+    unsigned tam_fragmento;
+
     // Usado para instanciar nomes de diretórios de usuários corretamente.
     unsigned max_caracteres_dir_usuario;
 
@@ -62,5 +65,8 @@ void inicializar_info_compartilhada(info_compartilhada_t *informacoes_compartilh
     Nota: aloca memória, que deverá ser liberada ao processar a mensagem.
 */
 void enviar_solicitacao_arquivo(info_compartilhada_t *info_compartilhada, const unsigned usuario_fonte, const unsigned id_arquivo, const unsigned usuario_destino);
+
+bool criar_buffer(info_compartilhada_t *info_compartilhada, const unsigned id_usuario, const unsigned id_arquivo);
+bool finalizar_buffer(info_compartilhada_t *info_compartilhada, const unsigned id_usuario, const unsigned id_arquivo);
 
 #endif // INFO_COMPARTILHADA_H

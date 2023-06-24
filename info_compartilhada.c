@@ -88,3 +88,69 @@ void enviar_solicitacao_arquivo(info_compartilhada_t *info_compartilhada, const 
 
     adicionar_elemento_lista_mensagem(&info_compartilhada->solicitacoes_arquivo[usuario_destino], requisicao);
 }
+
+bool criar_buffer(info_compartilhada_t *info_compartilhada, const unsigned id_usuario, const unsigned id_arquivo)
+{
+    // Tratamento de erros.
+    if (id_usuario >= info_compartilhada->n_usuarios)
+    {
+        printf("[[ERRO]] Tentativa de criar buffer para o arquivo %u do usuario %u, mas so ha %u usuarios. [info_compartilhada::criar_buffer]\n\n", id_arquivo+1, id_usuario+1, info_compartilhada->n_usuarios);
+
+        return false;
+    }
+
+    if (id_arquivo >= info_compartilhada->n_arquivos)
+    {
+        printf("[[ERRO]] Tentativa de criar buffer para o arquivo %u do usuario %u, mas so ha %u arquivos. [info_compartilhada::criar_buffer]\n\n", id_arquivo+1, id_usuario+1, info_compartilhada->n_arquivos);
+
+        return false;
+    }
+
+    // Recebe o endereço no qual o buffer deverá ser alocado.
+    buffer_t *buffer_arquivo = info_compartilhada->buffers_usuarios[id_usuario][id_arquivo];
+
+    if (buffer_arquivo != NULL)
+    {
+        printf("[[ERRO]] Falha em criar buffer para o arquivo %u do usuario %u: o buffer especificado ja existe ou esta corrompido. [info_compartilhada::criar_buffer]\n\n", id_arquivo+1, id_usuario+1);
+
+        return false;
+    }
+
+    buffer_arquivo = construir_buffer(info_compartilhada->n_fragmentos_buffer, info_compartilhada->tam_fragmento);
+
+    return true;
+}
+
+bool finalizar_buffer(info_compartilhada_t *info_compartilhada, const unsigned id_usuario, const unsigned id_arquivo)
+{
+    // Tratamento de erros.
+    if (id_usuario >= info_compartilhada->n_usuarios)
+    {
+        printf("[[ERRO]] Tentativa de finalizar buffer do arquivo %u do usuario %u, mas so ha %u usuarios. [info_compartilhada::finalizar_buffer]\n\n", id_arquivo+1, id_usuario+1, info_compartilhada->n_usuarios);
+
+        return false;
+    }
+
+    if (id_arquivo >= info_compartilhada->n_arquivos)
+    {
+        printf("[[ERRO]] Tentativa de finalizar buffer para o arquivo %u pelo usuario %u, mas so ha %u arquivos. [info_compartilhada::finalizar_buffer]\n\n", id_arquivo+1, id_usuario+1, info_compartilhada->n_arquivos);
+
+        return false;
+    }
+
+    // Recebe o endereço no qual o buffer deverá ser finalizado.
+    buffer_t *buffer_arquivo = info_compartilhada->buffers_usuarios[id_arquivo][id_arquivo];
+
+    if (buffer_arquivo != NULL)
+    {
+        printf("[[ERRO]] Falha em finalizar buffer para o arquivo %u pelo usuario %u: o buffer especificado nao existe. [info_compartilhada::finalizar_buffer]\n\n", id_arquivo+1, id_usuario+1);
+
+        return false;
+    }
+
+    free(buffer_arquivo);
+
+    info_compartilhada->buffers_usuarios[id_arquivo][id_arquivo] = NULL;
+
+    return true;
+}

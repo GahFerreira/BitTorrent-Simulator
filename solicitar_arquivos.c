@@ -1,7 +1,6 @@
 #include <stdlib.h>
-#if DEBUG > 0
 #include <stdio.h>
-#endif
+#include <stdbool.h>
 
 #include "solicitar_arquivos.h"
 #include "util.h"
@@ -74,13 +73,13 @@ void *solicitar_arquivos(info_total_t *info_total)
             {
                 if (aleatorio(1, 100) <= chance) 
                 {
-                    arquivos_ausentes[i_arquivo] = false;
-
-                    solicitar_arquivo(info_total->info_compartilhada, &info_total->info_usuario->info_arquivos, id_usuario, i_arquivo);
-
                     #if DEBUG >= 2
                     printf("[DEBUG-1] Usuario %u solicita arquivo %u.\n\n", id_usuario+1, i_arquivo+1);
                     #endif
+
+                    arquivos_ausentes[i_arquivo] = false;
+
+                    solicitar_arquivo(info_total->info_compartilhada, &info_total->info_usuario->info_arquivos, id_usuario, i_arquivo);
                 }
             }
             
@@ -94,9 +93,30 @@ void *solicitar_arquivos(info_total_t *info_total)
     return NULL; // Sem retorno.
 }
 
+/*
+    Caso haja um erro na solicitação do arquivo, as mensagens de solicitação não serão enviadas
+    aos demais usuários. 
+    
+    Entretanto, a remoção do arquivo da lista de arquivos ausentes acontecerá normalmente, 
+    para que não seja requisitado outra vez no futuro (já que a princípio ocorrerá o mesmo erro).
+*/
 void solicitar_arquivo(info_compartilhada_t *info_compartilhada, info_arquivos_t *info_arquivos, const unsigned id_usuario, const unsigned id_arquivo)
 {
-    mudar_arquivo_para_em_progresso(info_arquivos, id_usuario, id_arquivo);
+    // Muda o estado do arquivo para `EM_PROGRESSO`.
+    if( mudar_arquivo_para_em_progresso(info_arquivos, id_usuario, id_arquivo) == false )
+    {
+        printf("[[ERRO]] Falha na solicitacao do arquivo %u pelo usuario %u: usuario ja possui o arquivo em progresso ou completo. Cancelando solicitacao. [solicitar_arquivos::solicitar_arquivo]\n\n", id_arquivo+1, id_usuario+1);
+
+        return;
+    }
+
+    // Cria o buffer para receber o arquivo.
+    if ( criar_buffer(info_compartilhada, id_usuario, id_arquivo) == false )
+    {
+        printf("[[ERRO]] Falha na criacao do buffer para o arquivo %u do usuario %u. Cancelando solicitacao. [solicitar_arquivos::solicitar_arquivo]\n\n", id_arquivo+1, id_usuario+1);
+
+        return;
+    }
 
     for (unsigned i_usuario = 0; i_usuario < info_compartilhada->n_usuarios; ++i_usuario)
     {
