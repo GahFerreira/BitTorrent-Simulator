@@ -27,7 +27,7 @@ void inicializar_info_compartilhada(info_compartilhada_t *info_compartilhada, co
         ++max_caracteres_dir_usuario;
         aux /= 10;
     }
-    // `+3` pois inclui os outros caracteres do diretório: "./U{numero_usuario}"
+    // `+4` pois inclui os outros caracteres do diretório: "./U{numero_usuario}" e um caractere de fim.
     info_compartilhada->max_caracteres_dir_usuario = max_caracteres_dir_usuario+3;
 
     // Inicializa a lista de mensagens de usuários conectados.
@@ -126,10 +126,12 @@ bool criar_buffer(info_compartilhada_t *info_compartilhada, const unsigned id_us
         return false;
     }
 
-    // Recebe o endereço no qual o buffer deverá ser alocado.
-    buffer_t *buffer_arquivo = info_compartilhada->buffers_usuarios[id_usuario][id_arquivo];
-
-    if (buffer_arquivo != NULL)
+    /*
+        Buffer que receberá o arquivo.
+        
+        TODO: Alias não foi usado porque ocorria um bug que precisa ser melhor checado. Talvez usar &?
+    */
+    if (info_compartilhada->buffers_usuarios[id_usuario][id_arquivo] != NULL)
     {
         printf("[[ERRO]] Falha em criar buffer para o arquivo %u do usuario %u: o buffer especificado ja existe ou esta corrompido. [info_compartilhada::criar_buffer]\n\n", id_arquivo+1, id_usuario+1);
 
@@ -137,10 +139,10 @@ bool criar_buffer(info_compartilhada_t *info_compartilhada, const unsigned id_us
     }
 
     #if DEBUG >= 6
-    printf("[DEBUG-6] Construcao de buffer para receber arquivo %u do usuario %u.\n\n", id_arquivo+1, +1);
+    printf("[DEBUG-6] Construcao de buffer para receber arquivo %u do usuario %u.\n\n", id_arquivo+1, id_usuario+1);
     #endif
 
-    buffer_arquivo = construir_buffer(info_compartilhada->n_fragmentos_buffer, info_compartilhada->tam_fragmento);
+    info_compartilhada->buffers_usuarios[id_usuario][id_arquivo] = construir_buffer(info_compartilhada->n_fragmentos_buffer, info_compartilhada->tam_fragmento);
 
     return true;
 }

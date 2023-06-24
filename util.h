@@ -12,6 +12,8 @@ void semear_numeros_aleatorios(void);
 // Gera um número aleatório entre `minimo` e `maximo`, incluindo ambos.
 unsigned aleatorio(unsigned minimo, unsigned maximo);
 
+void unir_nome_diretorio_arquivo(const char nome_diretorio[], const char nome_arquivo[], char caminho_arquivo[]);
+
 // Funções de regra de negócio.
 
 // Assume que `destino` tenha a capacidade necessária para guardar o nome computado.

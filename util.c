@@ -69,3 +69,19 @@ unsigned nome_arquivo_para_id(const char nome_arquivo[])
     // Retorna -1 porque o id do arquivo é 0-based, exceto nas operações com o diretório.
     return retorno - 1;
 }
+
+void unir_nome_diretorio_arquivo(const char nome_diretorio[], const char nome_arquivo[], char caminho_arquivo[])
+{
+    unsigned tam_nome_diretorio = (unsigned) strlen(nome_diretorio);
+
+    /*
+        Limpa `caminho_arquivo`. 
+
+        TODO: Refatorar. Funciona sem `for`, mas é perigoso confiar em strings em c.
+    */
+    for (unsigned i_char = 0; i_char < tam_nome_diretorio + 256 + 5; ++i_char) caminho_arquivo[i_char] = '\0';
+
+    strncpy(caminho_arquivo, nome_diretorio, tam_nome_diretorio+1);
+    strncat(caminho_arquivo, "/", 1);
+    strncat(caminho_arquivo, nome_arquivo, 256);
+}

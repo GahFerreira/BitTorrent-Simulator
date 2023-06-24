@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <sys/stat.h>
 
 #include "info_usuario.h"
 #include "par_usuario_arquivo.h"
@@ -18,7 +19,7 @@ bool inicializar_info_usuario(info_usuario_t *info_usuario, const unsigned id_us
         char nome_diretorio[max_caracteres_dir_usuario];
         id_usuario_para_nome_diretorio(nome_diretorio, id_usuario);
 
-        inicializar_manipulador_arquivos(&info_usuario->manipulador_arquivos, nome_diretorio, max_caracteres_dir_usuario);
+        inicializar_manipulador_arquivos(&info_usuario->manipulador_arquivos, nome_diretorio, max_caracteres_dir_usuario, n_arquivos);
     }
 
     if ( inicializar_info_arquivos(&info_usuario->info_arquivos, &info_usuario->manipulador_arquivos, n_arquivos) == false )
@@ -40,9 +41,11 @@ bool inicializar_info_arquivos(info_arquivos_t *info_arquivos, manipulador_arqui
 
     info_arquivos->estado_arquivos = (estado_progresso_t *) calloc(n_arquivos, sizeof(estado_progresso_t));
 
-    if (!inicializar_estado_arquivos(info_arquivos, nome_arquivo_para_id, manipulador_arquivos))
+    info_arquivos->tamanho_arquivos = (unsigned *) calloc(n_arquivos, sizeof(unsigned));
+
+    if (!inicializar_dados_arquivos(info_arquivos, nome_arquivo_para_id, manipulador_arquivos))
     {
-        printf("[[ERRO]] Falha em inicializar estados dos arquivos do diretorio %s. [info_usuario::inicializar_info_arquivos]\n\n", manipulador_arquivos->nome_diretorio);
+        printf("[[ERRO]] Falha em inicializar dados de estado e/ou tamanho dos arquivos do diretorio %s. [info_usuario::inicializar_info_arquivos]\n\n", manipulador_arquivos->nome_diretorio);
 
         return false;
     }
@@ -52,7 +55,7 @@ bool inicializar_info_arquivos(info_arquivos_t *info_arquivos, manipulador_arqui
     return true;
 }
 
-bool inicializar_estado_arquivos(info_arquivos_t *info_arquivos, unsigned (funcao_conversora) (const char[]), manipulador_arquivos_t *manipulador_arquivos)
+bool inicializar_dados_arquivos(info_arquivos_t *info_arquivos, unsigned (funcao_conversora) (const char[]), manipulador_arquivos_t *manipulador_arquivos)
 {
     /*
         Se não houverem arquivos, não precisa se ler.
@@ -101,7 +104,7 @@ bool inicializar_estado_arquivos(info_arquivos_t *info_arquivos, unsigned (funca
         // Erro de abertura de diretório.
         if (tam_maior_nome == 0) 
         {
-            printf("[[ERRO]] Falha ao inicializar estados de arquivos. [info_usuario::inicializar_estado_arquivos]\n\n");
+            printf("[[ERRO]] Falha ao inicializar estados de arquivos. [info_usuario::inicializar_dados_arquivos]\n\n");
 
             // Libera a memória de `nomes_arquivos`.
             for (unsigned i_arquivo = 0; i_arquivo < manipulador_arquivos->n_arquivos_diretorio; ++i_arquivo)
@@ -127,10 +130,11 @@ bool inicializar_estado_arquivos(info_arquivos_t *info_arquivos, unsigned (funca
     }
     #endif
 
-    unsigned id_arquivo;
+    // Para obter tamanho do arquivo.
+    struct stat status;
 
     // Preenche a lista de arquivos deste usuário marcando os arquivos já presentes em seu diretório.
-    for (unsigned i_arquivo = 0; i_arquivo < manipulador_arquivos->n_arquivos_diretorio; ++i_arquivo)
+    for (unsigned i_arquivo = 0, id_arquivo; i_arquivo < manipulador_arquivos->n_arquivos_diretorio; ++i_arquivo)
     {
         id_arquivo = funcao_conversora(nomes_arquivos[i_arquivo]);
 
@@ -142,13 +146,58 @@ bool inicializar_estado_arquivos(info_arquivos_t *info_arquivos, unsigned (funca
         {
             printf("[AVISO] O numero de arquivos determinado foi %u, entretanto o arquivo %s foi encontrado no diretorio %s, e nao sera considerado.\n\n", info_arquivos->n_arquivos, nomes_arquivos[i_arquivo], manipulador_arquivos->nome_diretorio);
 
+            // Realiza o free na primeira oportunidade possível.
+            free(nomes_arquivos[i_arquivo]);
+
             continue;
         }
+
+        /*
+            TODO: Refatorar, poderia usar a função util para unir.
+        */
+        unsigned tam_nome_diretorio = (unsigned) strlen(manipulador_arquivos->nome_diretorio);
+
+        char caminho_arquivo[tam_nome_diretorio + tam_maior_nome + 5];
+
+        //Limpa `caminho_arquivo`.
+        for (unsigned i_char = 0; i_char < tam_nome_diretorio + tam_maior_nome + 5; ++i_char) caminho_arquivo[i_char] = '\0';
+
+        strncpy(caminho_arquivo, manipulador_arquivos->nome_diretorio, tam_nome_diretorio+1);
+        strncat(caminho_arquivo, "/", 1);
+        strncat(caminho_arquivo, nomes_arquivos[i_arquivo], tam_maior_nome);
+
+        // Abre o arquivo em modo de leitura e coloca o seu endereço em `ponteiro_arquivos`.
+        if ((manipulador_arquivos->ponteiro_arquivos[id_arquivo] = fopen(caminho_arquivo, "rb")) == NULL)
+        {
+            printf("[[ERRO]] Falha na abertura do arquivo de caminho %s em estado de leitura binaria. [info_usuario::inicializar_dados_arquivos]\n\n", caminho_arquivo);
+        }
+
+        /*
+            Define o tamanho do arquivo.
+            
+            Restrição: como `status.st_size` é um `long int`, o maior tamanho de arquivo é 2 GiB.
+        */
+        if (stat(caminho_arquivo, &status) != 0)
+        {
+            printf("[[ERRO]] Falha em obter tamanho do arquivo de caminho %s. [info_usuario::inicializar_dados_arquivos]\n\n", caminho_arquivo);
+        }
+
+        if (status.st_size < 0)
+        {
+            printf("[[ERRO]] Arquivo de caminho %s possui 2 GiB ou mais: comportamento indefinido durante transferencia de arquivos.\n\n", caminho_arquivo);
+        }
+        info_arquivos->tamanho_arquivos[id_arquivo] = (unsigned) status.st_size;
+
+        #if DEBUG >= 4
+        printf("[DEBUG-4] Tamanho do arquivo de caminho %s: %ld\n\n", caminho_arquivo, status.st_size);
+        #endif
 
         // Realiza o free na primeira oportunidade possível.
         free(nomes_arquivos[i_arquivo]);
 
+        // Define o estado do arquivo para completo.
         info_arquivos->estado_arquivos[id_arquivo] = COMPLETO;
+
         --info_arquivos->n_vazios;
         ++info_arquivos->n_completos;
     }

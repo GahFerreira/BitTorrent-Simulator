@@ -1,6 +1,7 @@
 #ifndef MANIPULADOR_ARQUIVOS_H
 #define MANIPULADOR_ARQUIVOS_H
 
+#include <stdio.h>
 #include <stdbool.h>
 #include <dirent.h>
 
@@ -15,9 +16,11 @@ struct manipulador_arquivos
     DIR *diretorio;
     // Extrator do nome dos arquivos de um diretório.
     struct dirent *propriedades_arquivo;
+
+    FILE **ponteiro_arquivos;
 };
 
-void inicializar_manipulador_arquivos(manipulador_arquivos_t *manipulador_arquivos, const char *nome_diretorio, const unsigned max_caracteres_nome_diretorio);
+void inicializar_manipulador_arquivos(manipulador_arquivos_t *manipulador_arquivos, const char *nome_diretorio, const unsigned max_caracteres_nome_diretorio, const unsigned n_arquivos);
 
 bool abrir_diretorio(manipulador_arquivos_t *manipulador_arquivos);
 void fechar_diretorio(manipulador_arquivos_t *manipulador_arquivos);
@@ -39,5 +42,9 @@ unsigned obter_numero_arquivos_diretorio(manipulador_arquivos_t *manipulador_arq
     a função cessa sua execução.
 */
 unsigned obter_nomes_arquivos_diretorio(manipulador_arquivos_t *manipulador_arquivos, char **destino, const unsigned tam_max_nome_esperado);
+
+// Iteração com arquivos
+
+bool criar_arquivo_diretorio(manipulador_arquivos_t *manipulador_arquivos, const char nome_arquivo[], const unsigned id_arquivo, const unsigned tam_arquivo);
 
 #endif // MANIPULADOR_ARQUIVOS_H

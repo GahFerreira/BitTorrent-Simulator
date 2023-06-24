@@ -12,12 +12,30 @@ void *gerenciar_buffers(info_total_t *info_total)
     {
         for (unsigned i_arquivo = 0; i_arquivo < n_arquivos; ++i_arquivo)
         {
-            if (buffers_usuario[i_arquivo] != NULL)
-            {
-                trancar_buffer(buffers_usuario[i_arquivo]);
+            buffer_t *buffer_arquivo = buffers_usuario[i_arquivo];
 
-                if (buffers_usuario[i_arquivo]->n_fragmentos_ausentes == 0)
+            if (buffer_arquivo != NULL)
+            {
+                trancar_buffer(buffer_arquivo);
+
+                if (buffer_arquivo->arquivo_criado == false && buffer_arquivo->dados_arquivo_obtidos == true)
                 {
+                    info_total->info_usuario->info_arquivos.tamanho_arquivos[i_arquivo] = buffer_arquivo->tam_arquivo;
+
+                    
+
+                    /*
+                        TODO:
+                          1. Criar arquivo
+                          3. Reiniciar o buffer
+                    */
+
+                    buffer_arquivo->arquivo_criado = true;
+                }
+
+                if (buffer_arquivo->n_fragmentos_ausentes == 0)
+                {
+                    //info_total->info_usuario->manipulador_arquivos;
                     /*
                         TODO:
                           1. Gravar buffer no disco.
@@ -25,9 +43,10 @@ void *gerenciar_buffers(info_total_t *info_total)
                           2.1 Se sim, marcar arquivo como completo e avisar demais usuários.
                           3. Reinicializar buffer e lista de fragmentos em necessidade
                     */
+                    //gravar_buffer_disco();
                 }
 
-                destrancar_buffer(buffers_usuario[i_arquivo]);
+                destrancar_buffer(buffer_arquivo);
             }
         }
 
@@ -37,4 +56,33 @@ void *gerenciar_buffers(info_total_t *info_total)
     pthread_exit(NULL);
 
     return NULL;
+}
+
+bool gravar_buffer_disco(FILE *arquivo_destino, buffer_t *buffer)
+{
+    if (arquivo_destino == NULL)
+    {
+        printf("[[ERRO]] Falha em gravar buffer: arquivo invalido. [gerenciar_buffers::gravar_buffer_disco]\n\n");
+
+        return false;
+    }
+
+    // Desloca do início do arquivo até a posição onde está o primeiro fragmento a ser escrito.
+    if (fseek(arquivo_destino, (long int) (buffer->id_primeiro_fragmento_atual * buffer->tam_fragmento), SEEK_SET) != 0)
+    {
+        printf("[[ERRO]] Falha em se deslocar no arquivo. [gerenciar_buffers::gravar_buffer_disco]\n\n");
+
+        return false;
+    }
+
+    
+
+    // if (fwrite(buffer->dados_fragmentos, buffer->tam_fragmento, , arquivo_destino) != 1)
+    // {
+    //     printf("\narquivo::gravar_fragmento: Falha na escrita do arquivo.\n\n");
+
+    //     return false;
+    // }
+
+    return true;
 }

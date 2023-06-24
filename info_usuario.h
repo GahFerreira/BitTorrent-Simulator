@@ -12,7 +12,6 @@
 #include "manipulador_arquivos.h"
 #include "lista_mensagem.h"
 
-
 typedef unsigned char estado_progresso_t;
 typedef struct info_usuario info_usuario_t;
 typedef struct info_arquivos info_arquivos_t;
@@ -22,7 +21,9 @@ enum estados_progresso {VAZIO = 0, EM_PROGRESSO = 1, COMPLETO = 2};
 struct info_arquivos
 {
     unsigned n_arquivos, n_vazios, n_em_progresso, n_completos;
+
     estado_progresso_t *estado_arquivos;
+    unsigned *tamanho_arquivos;
 
     pthread_mutex_t mutex_info_arquivos;
 };
@@ -58,7 +59,7 @@ bool inicializar_info_usuario(info_usuario_t *info_usuario, const unsigned id_us
 
 bool inicializar_info_arquivos(info_arquivos_t *info_arquivos, manipulador_arquivos_t *manipulador_arquivos, const unsigned n_arquivos);
 
-bool inicializar_estado_arquivos(info_arquivos_t *info_arquivos, unsigned (funcao_conversora) (const char[]), manipulador_arquivos_t *manipulador_arquivos);
+bool inicializar_dados_arquivos(info_arquivos_t *info_arquivos, unsigned (funcao_conversora) (const char[]), manipulador_arquivos_t *manipulador_arquivos);
 
 // Métodos de interação com info_arquivos.
 

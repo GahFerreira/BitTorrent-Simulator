@@ -33,7 +33,7 @@ void *processar_mensagens_recebidas(info_total_t *info_total)
         checar_mensagem_arquivo_completo(info_total, arquivo_completo, id_usuario);
 
         // Terceiro passo - O usuário checa se há alguma nova solicitação de arquivo.
-        checar_solicitacoes_arquivo(info_total->info_usuario, solicitacoes_arquivo, id_usuario);
+        checar_solicitacoes_arquivo(info_total, solicitacoes_arquivo, id_usuario);
 
         // Neste momento, esse algoritmo roda uma vez por segundo.
         meu_sleep(1000);
@@ -139,7 +139,7 @@ void checar_mensagem_arquivo_completo(info_total_t *info_total, lista_mensagem_t
     }
 }
 
-void checar_solicitacoes_arquivo(info_usuario_t *info_usuario, lista_mensagem_t *solicitacoes_arquivo, const unsigned id_usuario)
+void checar_solicitacoes_arquivo(info_total_t *info_total, lista_mensagem_t *solicitacoes_arquivo, const unsigned id_usuario)
 {
     #if DEBUG >= 5
     printf("[DEBUG-5] Usuario %u checa solicitacoes de arquivo.\n\n", id_usuario+1);
@@ -153,7 +153,22 @@ void checar_solicitacoes_arquivo(info_usuario_t *info_usuario, lista_mensagem_t 
         printf("[DEBUG-5] Usuario %u encontra nova solicitacao de arquivo: <usuario: %u, arquivo: %u>\n\n", id_usuario+1, solicitacao_arquivo->id_usuario+1, solicitacao_arquivo->id_arquivo+1); 
         #endif
 
-        estado_progresso_t estado_arquivo = obter_estado_arquivo(&info_usuario->info_arquivos, solicitacao_arquivo->id_arquivo);
+        estado_progresso_t estado_arquivo = obter_estado_arquivo(&info_total->info_usuario->info_arquivos, solicitacao_arquivo->id_arquivo);
+
+        if (estado_arquivo == EM_PROGRESSO || estado_arquivo == COMPLETO)
+        {
+            #if DEBUG >= 7
+            printf("[DEBUG-7] Buffer recebe o buffer do usuario %u arquivo %u.\n\n", solicitacao_arquivo->id_usuario+1, solicitacao_arquivo->id_arquivo+1);
+            #endif
+
+            buffer_t *buffer_usuario_arquivo = info_total->info_compartilhada->buffers_usuarios[solicitacao_arquivo->id_usuario][solicitacao_arquivo->id_arquivo];
+
+            trancar_buffer(buffer_usuario_arquivo);
+
+            informar_dados_arquivo(buffer_usuario_arquivo, info_total->info_usuario->info_arquivos.tamanho_arquivos[solicitacao_arquivo->id_arquivo]);
+
+            destrancar_buffer(buffer_usuario_arquivo);
+        }
 
         if (estado_arquivo == COMPLETO)
         {
@@ -161,7 +176,7 @@ void checar_solicitacoes_arquivo(info_usuario_t *info_usuario, lista_mensagem_t 
             printf("[DEBUG-3] Usuario %u tem o arquivo %u COMPLETO que o usuario %u solicitou.\n\n", id_usuario+1, solicitacao_arquivo->id_arquivo+1, solicitacao_arquivo->id_usuario+1);
             #endif
 
-            adicionar_tarefa(&info_usuario->lista_tarefas, id_usuario, solicitacao_arquivo->id_usuario, solicitacao_arquivo->id_arquivo);
+            adicionar_tarefa(&info_total->info_usuario->lista_tarefas, id_usuario, solicitacao_arquivo->id_usuario, solicitacao_arquivo->id_arquivo);
         }
     }
 }
