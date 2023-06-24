@@ -72,6 +72,10 @@ unsigned nome_arquivo_para_id(const char nome_arquivo[])
 
 void unir_nome_diretorio_arquivo(const char nome_diretorio[], const char nome_arquivo[], char caminho_arquivo[])
 {
+    #if DEBUG >= 7
+    printf("[DEBUG-7] Unindo diretorio %s com arquivo %s.\n\n", nome_diretorio, nome_arquivo);
+    #endif
+
     unsigned tam_nome_diretorio = (unsigned) strlen(nome_diretorio);
 
     /*
@@ -84,4 +88,8 @@ void unir_nome_diretorio_arquivo(const char nome_diretorio[], const char nome_ar
     strncpy(caminho_arquivo, nome_diretorio, tam_nome_diretorio+1);
     strncat(caminho_arquivo, "/", 1);
     strncat(caminho_arquivo, nome_arquivo, 256);
+
+    #if DEBUG >= 7
+    printf("[DEBUG-7] Resultado uniao do diretorio %s com arquivo %s: %s.\n\n", nome_diretorio, nome_arquivo, caminho_arquivo);
+    #endif
 }

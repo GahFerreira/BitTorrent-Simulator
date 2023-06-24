@@ -3,8 +3,10 @@
 #include <stdbool.h>
 #include <string.h>
 #include <dirent.h>
+#include <unistd.h> // `ftruncate()`
 
 #include "manipulador_arquivos.h"
+#include "util.h"
 
 void inicializar_manipulador_arquivos(manipulador_arquivos_t *manipulador_arquivos, const char *nome_diretorio, const unsigned max_caracteres_nome_diretorio, const unsigned n_arquivos)
 {
@@ -107,20 +109,40 @@ unsigned obter_nomes_arquivos_diretorio(manipulador_arquivos_t *manipulador_arqu
 
 bool criar_arquivo_diretorio(manipulador_arquivos_t *manipulador_arquivos, const char nome_arquivo[], const unsigned id_arquivo, const unsigned tam_arquivo)
 {
+    #if DEBUG >= 7
+    printf("[DEBUG-7] Requisicao de criacao de arquivo com nome %s, id %u e tamanho %u no diretorio %s.\n\n", nome_arquivo, id_arquivo+1, tam_arquivo, manipulador_arquivos->nome_diretorio);
+    #endif
+
     if (manipulador_arquivos->ponteiro_arquivos[id_arquivo] != NULL)
     {
-        printf("[[ERRO]] Falha em criar arquivo %u: arquivo ja existe.\n\n", id_arquivo+1);
+        printf("[[ERRO]] Falha em criar arquivo %u: arquivo ja existe.[manipulador_arquivos::criar_arquivo_diretorio]\n\n", id_arquivo+1);
 
         return false;
     }
 
-    manipulador_arquivos->ponteiro_arquivos[id_arquivo] = fopen(nome_arquivo, "wb");
+    unsigned tam_nome_diretorio = (unsigned) strlen(manipulador_arquivos->nome_diretorio);
+    
+    char caminho_arquivo[tam_nome_diretorio + 256 + 5];
 
-    // //fdopen associa um FILE* a um int file descriptor
-    // //acho que rb+ é válido
-    // FILE* arquivo = fdopen(fd,"rb+");
-    // ftruncate(fileno(arquivo), tam_arquivo);
+    unir_nome_diretorio_arquivo(manipulador_arquivos->nome_diretorio, nome_arquivo, caminho_arquivo);
 
+    #if DEBUG >= 1
+    printf("[DEBUG-1] Criacao de arquivo com caminho %s.\n\n", caminho_arquivo);
+    #endif
 
+    if ( (manipulador_arquivos->ponteiro_arquivos[id_arquivo] = fopen(caminho_arquivo, "wb")) == NULL)
+    {
+        printf("[[ERRO]] Falha em criar arquivo com caminho %s.[manipulador_arquivos::criar_arquivo_diretorio]\n\n", caminho_arquivo);
 
+        return false;
+    }
+
+    if ( ftruncate(fileno(manipulador_arquivos->ponteiro_arquivos[id_arquivo]), (long int) tam_arquivo) == -1)
+    {
+        printf("[[ERRO]] Falha em definir tamanho inicial de arquivo com caminho %s.[manipulador_arquivos::criar_arquivo_diretorio]\n\n", caminho_arquivo);
+
+        return false;
+    }
+
+    return true;
 }

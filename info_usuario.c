@@ -43,12 +43,28 @@ bool inicializar_info_arquivos(info_arquivos_t *info_arquivos, manipulador_arqui
 
     info_arquivos->tamanho_arquivos = (unsigned *) calloc(n_arquivos, sizeof(unsigned));
 
+    info_arquivos->nome_arquivos = (char **) calloc(n_arquivos, sizeof(char *));
+    for (unsigned i_arquivo = 0; i_arquivo < n_arquivos; ++i_arquivo)
+    {
+        info_arquivos->nome_arquivos[i_arquivo] = (char *) calloc(256, sizeof(char));
+    }
+
     if (!inicializar_dados_arquivos(info_arquivos, nome_arquivo_para_id, manipulador_arquivos))
     {
         printf("[[ERRO]] Falha em inicializar dados de estado e/ou tamanho dos arquivos do diretorio %s. [info_usuario::inicializar_info_arquivos]\n\n", manipulador_arquivos->nome_diretorio);
 
         return false;
     }
+
+    #if DEBUG >= 3
+    printf("[[DEBUG-3]] Valores de `nome_arquivos` do diretorio %s apos inicializacao:\n", manipulador_arquivos->nome_diretorio);
+
+    for (unsigned i_arquivo = 0; i_arquivo < n_arquivos; ++i_arquivo)
+    {
+        printf("[%u] %s\n", i_arquivo, info_arquivos->nome_arquivos[i_arquivo]);
+    }
+    printf("\n");
+    #endif
 
     info_arquivos->mutex_info_arquivos = PTHREAD_MUTEX_INITIALIZER;
 
@@ -159,7 +175,7 @@ bool inicializar_dados_arquivos(info_arquivos_t *info_arquivos, unsigned (funcao
 
         char caminho_arquivo[tam_nome_diretorio + tam_maior_nome + 5];
 
-        //Limpa `caminho_arquivo`.
+        // Limpa `caminho_arquivo`.
         for (unsigned i_char = 0; i_char < tam_nome_diretorio + tam_maior_nome + 5; ++i_char) caminho_arquivo[i_char] = '\0';
 
         strncpy(caminho_arquivo, manipulador_arquivos->nome_diretorio, tam_nome_diretorio+1);
@@ -190,6 +206,13 @@ bool inicializar_dados_arquivos(info_arquivos_t *info_arquivos, unsigned (funcao
 
         #if DEBUG >= 4
         printf("[DEBUG-4] Tamanho do arquivo de caminho %s: %ld\n\n", caminho_arquivo, status.st_size);
+        #endif
+
+        // Copia o nome do arquivo para o respectivo `nome_arquivos`.
+        strcpy(info_arquivos->nome_arquivos[id_arquivo], nomes_arquivos[i_arquivo]);    
+
+        #if DEBUG >= 7
+        printf("[DEBUG-7] Copia do nome do arquivo %s para `nome_arquivos`, resultado: %s.\n\n", nomes_arquivos[i_arquivo], info_arquivos->nome_arquivos[id_arquivo]);
         #endif
 
         // Realiza o free na primeira oportunidade possível.

@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 
 #include "buffer.h"
 
@@ -15,8 +16,10 @@ buffer_t *construir_buffer(const unsigned n_fragmentos, const unsigned tam_fragm
         Isso simboliza que ainda é esperado o tamanho do arquivo.
     */
     novo_buffer->n_fragmentos_ausentes = 1;
+    novo_buffer->id_primeiro_fragmento_atual = 0;
 
     novo_buffer->tam_arquivo = 0;
+    novo_buffer->nome_arquivo[0] = '\0';
     novo_buffer->dados_arquivo_obtidos = false;
     novo_buffer->arquivo_criado = false;
 
@@ -37,8 +40,10 @@ void destrancar_buffer(buffer_t *buffer)
     pthread_mutex_unlock(&buffer->mutex_buffer);
 }
 
-void informar_dados_arquivo(buffer_t *buffer, const unsigned tam_arquivo)
+void informar_dados_arquivo(buffer_t *buffer, const unsigned tam_arquivo, const char nome_arquivo[])
 {
     buffer->tam_arquivo = tam_arquivo;
+    strcpy(buffer->nome_arquivo, nome_arquivo);
+
     buffer->dados_arquivo_obtidos = true;
 }

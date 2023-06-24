@@ -24,6 +24,8 @@ struct info_arquivos
 
     estado_progresso_t *estado_arquivos;
     unsigned *tamanho_arquivos;
+    // A implementação supõe que o tamanho máximo de cada arquivo seja de 256 caracteres.
+    char **nome_arquivos;
 
     pthread_mutex_t mutex_info_arquivos;
 };

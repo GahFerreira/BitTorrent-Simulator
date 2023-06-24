@@ -18,15 +18,26 @@ void *gerenciar_buffers(info_total_t *info_total)
             {
                 trancar_buffer(buffer_arquivo);
 
+                /*
+                    Quando um usuário solicita um arquivo, primeiramente ele requisita os seus dados.
+
+                    Assim que os dados são colocados no buffer por outro usuário que possua aquele
+                    arquivo, este usuário cria o arquivo com nome e tamanho correto.
+                */
                 if (buffer_arquivo->arquivo_criado == false && buffer_arquivo->dados_arquivo_obtidos == true)
                 {
                     info_total->info_usuario->info_arquivos.tamanho_arquivos[i_arquivo] = buffer_arquivo->tam_arquivo;
 
-                    
+                    strcpy(info_total->info_usuario->info_arquivos.nome_arquivos[i_arquivo], buffer_arquivo->nome_arquivo); 
+
+                    // Cria o arquivo.
+                    if ( criar_arquivo_diretorio(&info_total->info_usuario->manipulador_arquivos, info_total->info_usuario->info_arquivos.nome_arquivos[i_arquivo], i_arquivo, buffer_arquivo->tam_arquivo) == false )
+                    {
+                        printf("[[ERRO]] Falha ao criar arquivo %s do usuario %u.\n\n", info_total->info_usuario->info_arquivos.nome_arquivos[i_arquivo], info_total->info_usuario->id_usuario);
+                    }
 
                     /*
                         TODO:
-                          1. Criar arquivo
                           3. Reiniciar o buffer
                     */
 

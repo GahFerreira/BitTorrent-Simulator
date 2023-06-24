@@ -165,7 +165,7 @@ void checar_solicitacoes_arquivo(info_total_t *info_total, lista_mensagem_t *sol
 
             trancar_buffer(buffer_usuario_arquivo);
 
-            informar_dados_arquivo(buffer_usuario_arquivo, info_total->info_usuario->info_arquivos.tamanho_arquivos[solicitacao_arquivo->id_arquivo]);
+            informar_dados_arquivo(buffer_usuario_arquivo, info_total->info_usuario->info_arquivos.tamanho_arquivos[solicitacao_arquivo->id_arquivo], info_total->info_usuario->info_arquivos.nome_arquivos[solicitacao_arquivo->id_arquivo]);
 
             destrancar_buffer(buffer_usuario_arquivo);
         }
