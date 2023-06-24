@@ -4,15 +4,15 @@
 #include "info_compartilhada.h"
 #include "par_usuario_arquivo.h"
 
-void construir_info_compartilhada(info_compartilhada_t *informacoes_compartilhadas, const unsigned n_usuarios, const unsigned n_arquivos)
+void inicializar_info_compartilhada(info_compartilhada_t *info_compartilhada, const unsigned n_usuarios, const unsigned n_arquivos)
 {
-    informacoes_compartilhadas->finalizar_execucao = false;
+    info_compartilhada->finalizar_execucao = false;
     
-    informacoes_compartilhadas->n_usuarios_finalizados = 0;
-    inicializar_dado_concorrente(&informacoes_compartilhadas->controlador_n_usuarios_finalizados, &informacoes_compartilhadas->n_usuarios_finalizados);
+    info_compartilhada->n_usuarios_finalizados = 0;
+    inicializar_dado_concorrente(&info_compartilhada->controlador_n_usuarios_finalizados, &info_compartilhada->n_usuarios_finalizados);
 
-    informacoes_compartilhadas->n_usuarios = n_usuarios;
-    informacoes_compartilhadas->n_arquivos = n_arquivos;
+    info_compartilhada->n_usuarios = n_usuarios;
+    info_compartilhada->n_arquivos = n_arquivos;
 
     // Calcula o chão de `log_10(n_usuarios) +1`.
     unsigned max_caracteres_dir_usuario = 0;
@@ -23,19 +23,31 @@ void construir_info_compartilhada(info_compartilhada_t *informacoes_compartilhad
         aux /= 10;
     }
     // `+3` pois inclui os outros caracteres do diretório: "./U{numero_usuario}"
-    informacoes_compartilhadas->max_caracteres_dir_usuario = max_caracteres_dir_usuario+3;
+    info_compartilhada->max_caracteres_dir_usuario = max_caracteres_dir_usuario+3;
 
     // Inicializa a lista de mensagens de usuários conectados.
-    inicializar_lista_mensagem(&informacoes_compartilhadas->usuarios_conectados);
+    inicializar_lista_mensagem(&info_compartilhada->usuarios_conectados);
 
     // Instancia e inicializa o vetor de listas de mensagens de conexão de novos usuários.
-    inicializar_multiplas_listas_mensagem(&informacoes_compartilhadas->novos_usuarios_conectados, n_usuarios);
+    inicializar_multiplas_listas_mensagem(&info_compartilhada->novos_usuarios_conectados, n_usuarios);
 
     // Instancia e inicializa o vetor de listas de solicitação de arquivos.
-    inicializar_multiplas_listas_mensagem(&informacoes_compartilhadas->solicitacoes_arquivo, n_usuarios);
+    inicializar_multiplas_listas_mensagem(&info_compartilhada->solicitacoes_arquivo, n_usuarios);
 
     // Instancia e inicializa o vetor de listas de conclusão de arquivos.
-    inicializar_multiplas_listas_mensagem(&informacoes_compartilhadas->arquivo_completo, n_usuarios);
+    inicializar_multiplas_listas_mensagem(&info_compartilhada->arquivo_completo, n_usuarios);
+
+    info_compartilhada->buffers_usuarios = (buffer_t ***) malloc(n_usuarios * sizeof(buffer_t **));
+    for (unsigned i_usuario = 0; i_usuario < n_usuarios; ++i_usuario)
+    {
+        info_compartilhada->buffers_usuarios[i_usuario] = (buffer_t **) malloc(n_arquivos * sizeof(buffer_t *));
+
+        for (unsigned i_arquivo = 0; i_arquivo < n_arquivos; ++i_arquivo)
+        {
+            // `malloc` nem `calloc` aloca os ponteiros com `NULL`.
+            info_compartilhada->buffers_usuarios[i_usuario][i_arquivo] = NULL;
+        }
+    }
 }
 
 void enviar_solicitacao_arquivo(info_compartilhada_t *info_compartilhada, const unsigned usuario_fonte, const unsigned id_arquivo, const unsigned usuario_destino)

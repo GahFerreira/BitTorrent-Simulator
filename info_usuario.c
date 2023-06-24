@@ -5,14 +5,16 @@
 #include "info_usuario.h"
 #include "par_usuario_arquivo.h"
 
-void construir_info_usuario(info_usuario_t *informacoes_usuario, const unsigned id, const unsigned n_arquivos)
+void inicializar_info_usuario(info_usuario_t *info_usuario, const unsigned id, const unsigned n_arquivos)
 {
-    informacoes_usuario->id_usuario = id;
+    info_usuario->id_usuario = id;
 
-    construir_info_arquivos(&informacoes_usuario->info_arquivos, n_arquivos);
+    inicializar_info_arquivos(&info_usuario->info_arquivos, n_arquivos);
+
+    inicializar_lista_mensagem(&info_usuario->lista_tarefas);
 }
 
-void construir_info_arquivos(info_arquivos_t *info_arquivos, const unsigned n_arquivos)
+void inicializar_info_arquivos(info_arquivos_t *info_arquivos, const unsigned n_arquivos)
 {
     info_arquivos->n_arquivos = n_arquivos;
     info_arquivos->n_vazios = n_arquivos;
@@ -24,7 +26,7 @@ void construir_info_arquivos(info_arquivos_t *info_arquivos, const unsigned n_ar
     info_arquivos->mutex_info_arquivos = PTHREAD_MUTEX_INITIALIZER;
 }
 
-bool inicializar_info_arquivos(info_arquivos_t *info_arquivos, unsigned (funcao_conversora) (const char[]), manipulador_arquivos_t *manipulador_arquivos)
+bool inicializar_estado_arquivos(info_arquivos_t *info_arquivos, unsigned (funcao_conversora) (const char[]), manipulador_arquivos_t *manipulador_arquivos)
 {
     /*
         Se não houverem arquivos, não precisa se ler.
@@ -73,7 +75,7 @@ bool inicializar_info_arquivos(info_arquivos_t *info_arquivos, unsigned (funcao_
         // Erro de abertura de diretório.
         if (tam_maior_nome == 0) 
         {
-            printf("[[ERRO]] Falha ao inicializar estados de arquivos. [info_usuario::inicializar_info_arquivos]\n\n");
+            printf("[[ERRO]] Falha ao inicializar estados de arquivos. [info_usuario::inicializar_estado_arquivos]\n\n");
 
             return false;
         }
@@ -169,11 +171,11 @@ estado_progresso_t obter_estado_arquivo(info_arquivos_t *info_arquivos, const un
     return resultado;
 }
 
-bool arquivo_para_em_progresso(info_arquivos_t *info_arquivos, const unsigned id_usuario, const unsigned id_arquivo)
+bool mudar_arquivo_para_em_progresso(info_arquivos_t *info_arquivos, const unsigned id_usuario, const unsigned id_arquivo)
 {
     if (obter_estado_arquivo(info_arquivos, id_arquivo) != VAZIO)
     {
-        printf("[[ERRO]] Tentativa de mudar arquivo %u do usuario %u para EM_PROGRESSO, mas o arquivo nao esta VAZIO. [info_usuario::arquivo_para_em_progresso]\n\n", id_arquivo+1, id_usuario+1);
+        printf("[[ERRO]] Tentativa de mudar arquivo %u do usuario %u para EM_PROGRESSO, mas o arquivo nao esta VAZIO. [info_usuario::mudar_arquivo_para_em_progresso]\n\n", id_arquivo+1, id_usuario+1);
 
         return false;
     }
@@ -192,28 +194,50 @@ bool arquivo_para_em_progresso(info_arquivos_t *info_arquivos, const unsigned id
 
 // bool arquivo_para_completo();
 
-void adicionar_tarefa(lista_mensagem_t *lista_tarefa, const unsigned id_usuario, const unsigned id_arquivo)
+void adicionar_tarefa(lista_mensagem_t *lista_tarefa, const unsigned id_usuario, const unsigned id_usuario_tarefa, const unsigned id_arquivo_tarefa)
 {
-    par_usuario_arquivo_t *tarefa = (par_usuario_arquivo_t *) calloc(1, sizeof(par_usuario_arquivo_t));
+    if (id_usuario == id_usuario_tarefa)
+    {
+        printf("[[ERRO]] Tentativa de adicionar tarefa a sua propria lista de tarefas pelo usuario %u. [info_usuario::adicionar_tarefa]\n\n", id_usuario+1);
 
-    tarefa->id_usuario = id_usuario;
-    tarefa->id_arquivo = id_arquivo;
+        return;
+    }
+
+    par_usuario_arquivo_t *tarefa = (par_usuario_arquivo_t *) malloc(sizeof(par_usuario_arquivo_t));
+
+    tarefa->id_usuario = id_usuario_tarefa;
+    tarefa->id_arquivo = id_arquivo_tarefa;
+
+    #if DEBUG >= 2
+    printf("[DEBUG-2] Usuario %u adiciona tarefa: <usuario: %u, arquivo: %u>\n\n", id_usuario+1, id_usuario_tarefa+1, id_arquivo_tarefa+1);
+    #endif
 
     adicionar_elemento_lista_mensagem(lista_tarefa, tarefa);
 }
 
-void completar_tarefa(lista_mensagem_t *lista_tarefa, const unsigned id_usuario, const unsigned id_arquivo)
+void completar_tarefa(lista_mensagem_t *lista_tarefa, const unsigned id_usuario, const unsigned id_usuario_tarefa, const unsigned id_arquivo_tarefa)
 {
+    if (id_usuario == id_usuario_tarefa)
+    {
+        printf("[[ERRO]] Tentativa de completar tarefa da sua propria lista de tarefas pelo usuario %u. [info_usuario::completar_tarefa]", id_usuario+1);
+
+        return;
+    }
+
     par_usuario_arquivo_t tarefa;
 
-    tarefa.id_usuario = id_usuario;
-    tarefa.id_arquivo = id_arquivo;
+    tarefa.id_usuario = id_usuario_tarefa;
+    tarefa.id_arquivo = id_arquivo_tarefa;
+
+    #if DEBUG >= 2
+    printf("[DEBUG-2] Usuario %u completa tarefa: <usuario: %u, arquivo: %u>\n\n", id_usuario+1, id_usuario_tarefa+1, id_arquivo_tarefa+1);
+    #endif
 
     const par_usuario_arquivo_t *tarefa_a_completar = (const par_usuario_arquivo_t *) extrair_elemento_lista_mensagem(lista_tarefa, &tarefa, (bool (*) (const void *, const void *)) comparar_par_usuario_arquivo);
 
     if (tarefa_a_completar == NULL)
     {
-        printf("[[ERRO]] Falha em extrair a tarefa <id_usuario: %u, arquivo: %u> da lista de tarefas. [info_usuario.c::completar_tarefa]\n\n", id_usuario+1, id_arquivo+1);
+        printf("[[ERRO]] Falha em extrair a tarefa <id_usuario: %u, arquivo: %u> da lista de tarefas do usuario %u. [info_usuario.c::completar_tarefa]\n\n", id_usuario_tarefa+1, id_arquivo_tarefa+1, id_usuario+1);
     }
 
     else free((par_usuario_arquivo_t *) tarefa_a_completar);

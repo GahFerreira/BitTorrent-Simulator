@@ -8,7 +8,7 @@
 
 void *processar_mensagens_recebidas(info_total_t *info_total)
 {
-    #if DEBUG >= 3
+    #if DEBUG >= 4
     printf("[DEBUG-3] Usuario %u iniciou processar_mensagens_recebidas.\n\n", info_total->info_usuario->id_usuario+1);
     #endif
 
@@ -47,7 +47,7 @@ void *processar_mensagens_recebidas(info_total_t *info_total)
 void checar_novo_usuario_conectado(info_total_t *info_total, lista_mensagem_t *novos_usuarios_conectados, const unsigned id_usuario)
 {
     #if DEBUG >= 5
-    printf("[DEBUG-5] Usuario %u checa novos usuarios conectados.\n", id_usuario+1);
+    printf("[DEBUG-5] Usuario %u checa novos usuarios conectados.\n\n", id_usuario+1);
     #endif
 
     // Tenta extrair um dos novos usuários conectados.
@@ -57,7 +57,7 @@ void checar_novo_usuario_conectado(info_total_t *info_total, lista_mensagem_t *n
     if (novo_usuario_conectado != NULL)
     {
         #if DEBUG >= 5
-        printf("[DEBUG-5] Usuario %u encontra novo usuario conectado: usuario %u\n", id_usuario+1, *novo_usuario_conectado+1); 
+        printf("[DEBUG-5] Usuario %u encontra novo usuario conectado: usuario %u\n\n", id_usuario+1, *novo_usuario_conectado+1); 
         #endif
 
         unsigned n_arquivos_em_progresso;
@@ -107,7 +107,7 @@ void checar_novo_usuario_conectado(info_total_t *info_total, lista_mensagem_t *n
 void checar_mensagem_arquivo_completo(info_total_t *info_total, lista_mensagem_t *arquivo_completo, const unsigned id_usuario)
 {
     #if DEBUG >= 5
-    printf("[DEBUG-5] Usuario %u checa novas mensagens de completude de arquivos.\n", id_usuario+1);
+    printf("[DEBUG-5] Usuario %u checa novas mensagens de completude de arquivos.\n\n", id_usuario+1);
     #endif
 
     // Tenta extrair uma nova mensagem de arquivo completo.
@@ -116,7 +116,7 @@ void checar_mensagem_arquivo_completo(info_total_t *info_total, lista_mensagem_t
     if (mensagem_arquivo_completo != NULL)
     {
         #if DEBUG >= 5
-        printf("[DEBUG-5] Usuario %u encontra nova mensagem de arquivo completo: <usuario: %u, arquivo: %u>\n", id_usuario+1, mensagem_arquivo_completo->id_usuario+1, mensagem_arquivo_completo->id_arquivo+1); 
+        printf("[DEBUG-5] Usuario %u encontra nova mensagem de arquivo completo: <usuario: %u, arquivo: %u>\n\n", id_usuario+1, mensagem_arquivo_completo->id_usuario+1, mensagem_arquivo_completo->id_arquivo+1); 
         #endif
 
         // Obtém o estado do arquivo dito como completo.
@@ -131,7 +131,7 @@ void checar_mensagem_arquivo_completo(info_total_t *info_total, lista_mensagem_t
         // Retira <usuário_mensagem, arquivo_mensagem> da sua lista de tarefas.
         else if (estado_arquivo == COMPLETO)
         {
-            completar_tarefa(&info_total->info_usuario->lista_tarefas, mensagem_arquivo_completo->id_usuario, mensagem_arquivo_completo->id_arquivo);
+            completar_tarefa(&info_total->info_usuario->lista_tarefas, id_usuario,mensagem_arquivo_completo->id_usuario, mensagem_arquivo_completo->id_arquivo);
         }
 
         // TODO: Talvez colocar numa função à parte?
@@ -142,7 +142,7 @@ void checar_mensagem_arquivo_completo(info_total_t *info_total, lista_mensagem_t
 void checar_solicitacoes_arquivo(info_usuario_t *info_usuario, lista_mensagem_t *solicitacoes_arquivo, const unsigned id_usuario)
 {
     #if DEBUG >= 5
-    printf("[DEBUG-5] Usuario %u checa solicitacoes de arquivo.\n", id_usuario+1);
+    printf("[DEBUG-5] Usuario %u checa solicitacoes de arquivo.\n\n", id_usuario+1);
     #endif
 
     const par_usuario_arquivo_t *solicitacao_arquivo = (const par_usuario_arquivo_t *) extrair_primeiro_lista_mensagem(solicitacoes_arquivo);
@@ -150,14 +150,18 @@ void checar_solicitacoes_arquivo(info_usuario_t *info_usuario, lista_mensagem_t 
     if (solicitacao_arquivo != NULL)
     {
         #if DEBUG >= 5
-        printf("[DEBUG-5] Usuario %u encontra nova solicitacao de arquivo: <usuario: %u, arquivo: %u>\n", id_usuario+1, solicitacao_arquivo->id_usuario+1, solicitacao_arquivo->id_arquivo+1); 
+        printf("[DEBUG-5] Usuario %u encontra nova solicitacao de arquivo: <usuario: %u, arquivo: %u>\n\n", id_usuario+1, solicitacao_arquivo->id_usuario+1, solicitacao_arquivo->id_arquivo+1); 
         #endif
 
         estado_progresso_t estado_arquivo = obter_estado_arquivo(&info_usuario->info_arquivos, solicitacao_arquivo->id_arquivo);
 
         if (estado_arquivo == COMPLETO)
         {
-            adicionar_tarefa(&info_usuario->lista_tarefas, id_usuario, solicitacao_arquivo->id_arquivo);
+            #if DEBUG >= 3
+            printf("[DEBUG-3] Usuario %u tem o arquivo %u COMPLETO que o usuario %u solicitou.\n\n", id_usuario+1, solicitacao_arquivo->id_arquivo+1, solicitacao_arquivo->id_usuario+1);
+            #endif
+
+            adicionar_tarefa(&info_usuario->lista_tarefas, id_usuario, solicitacao_arquivo->id_usuario, solicitacao_arquivo->id_arquivo);
         }
     }
 }

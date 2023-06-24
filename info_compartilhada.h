@@ -10,6 +10,7 @@
 
 #include "dado_concorrente.h"
 #include "lista_mensagem.h"
+#include "buffer.h"
 
 typedef struct info_compartilhada info_compartilhada_t;
 
@@ -39,9 +40,21 @@ struct info_compartilhada
     // Isso diz que o usuário 'y' está contando ao usuário 'x' que agora 'y' possui
     // o arquivo cujo id é `arq_id` disponível.
     lista_mensagem_t *arquivo_completo;
+
+    /*
+        Buffers usados para transferência de arquivos.
+
+        buffers_usuarios[x] (que é buffer_t **) representa a lista de buffers do usuário 'x'.
+        buffers_usuarios[x][y] (que é buffer_t *) é um ponteiro para o buffer 'y' do usuário 'x' (inicialmente NULL).
+        *buffers_usuarios[x][y] (que é buffer_t) é o [y]-ésimo buffer do usuário 'x'.
+
+        Idealmente seria um ponteiro duplo, mas como o buffer tem que ser alocado com `malloc`,
+        preciso de um nível a mais de deferência.
+    */
+    buffer_t ***buffers_usuarios;
 };
 
-void construir_info_compartilhada(info_compartilhada_t *informacoes_compartilhadas, const unsigned n_usuarios, const unsigned n_arquivos);
+void inicializar_info_compartilhada(info_compartilhada_t *informacoes_compartilhadas, const unsigned n_usuarios, const unsigned n_arquivos);
 
 /*
     O `usuario_fonte` envia uma mensagem ao `usuario_destino` pedindo o arquivo cujo id é `id_arquivo`.

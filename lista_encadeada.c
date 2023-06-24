@@ -42,7 +42,7 @@ bool localizar_elemento_lista_encadeada(lista_encadeada_t *lista_encadeada, cons
 
 void adicionar_elemento_lista_encadeada(lista_encadeada_t *lista_encadeada, const void *elemento)
 {
-    no_t *novo_no = (no_t *) calloc(1, sizeof(no_t));
+    no_t *novo_no = (no_t *) malloc(sizeof(no_t));
     inicializar_no(novo_no, elemento);
 
     if (esta_vazia_lista_encadeada(lista_encadeada) == true)
@@ -97,12 +97,12 @@ const void *extrair_elemento_lista_encadeada(lista_encadeada_t *lista_encadeada,
             const void *resultado = atual->dado;
 
             free(atual);
-            lista_encadeada->tamanho--;
+            --lista_encadeada->tamanho;
 
             return resultado;
         }
 
-        // Se o nó atual é o último, e o `if` não entrou nenhuma vez, o elem. não está na lista.
+        // Se o nó atual é o último, e o `if` não entrou nenhuma vez, o elemento não está na lista.
         if (atual->proximo == NULL) return NULL;
 
         anterior = atual;
@@ -125,7 +125,7 @@ const void *extrair_primeiro_lista_encadeada(lista_encadeada_t *lista_encadeada)
     lista_encadeada->primeiro = atual->proximo;
 
     free(atual);
-    lista_encadeada->tamanho--;
+    --lista_encadeada->tamanho;
 
     return resultado;
 }

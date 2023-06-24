@@ -8,7 +8,7 @@
 
 void *solicitar_arquivos(info_total_t *info_total)
 {
-    #if DEBUG >= 3
+    #if DEBUG >= 4
     printf("[DEBUG-3] Usuario %u iniciou solicitar_arquivos.\n\n", info_total->info_usuario->id_usuario+1);
     #endif
 
@@ -60,7 +60,7 @@ void *solicitar_arquivos(info_total_t *info_total)
 
         Isso dá cerca de 1 arquivo por tentativa.
     */
-    while (info_total->info_compartilhada->finalizar_execucao == false)
+    while (info_total->info_compartilhada->finalizar_execucao == false && n_arquivos_ausentes > 0)
     {
         #if DEBUG >= 5
         printf("[DEBUG-1] Usuario %u tenta solicitar arquivos.\n\n", id_usuario+1);
@@ -96,7 +96,7 @@ void *solicitar_arquivos(info_total_t *info_total)
 
 void solicitar_arquivo(info_compartilhada_t *info_compartilhada, info_arquivos_t *info_arquivos, const unsigned id_usuario, const unsigned id_arquivo)
 {
-    arquivo_para_em_progresso(info_arquivos, id_usuario, id_arquivo);
+    mudar_arquivo_para_em_progresso(info_arquivos, id_usuario, id_arquivo);
 
     for (unsigned i_usuario = 0; i_usuario < info_compartilhada->n_usuarios; ++i_usuario)
     {

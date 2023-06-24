@@ -45,11 +45,11 @@ struct info_usuario
     lista_mensagem_t lista_tarefas;
 };
 
-void construir_info_usuario(info_usuario_t* informacoes_usuario, const unsigned id, const unsigned n_arquivos);
+void inicializar_info_usuario(info_usuario_t* info_usuario, const unsigned id, const unsigned n_arquivos);
 
-void construir_info_arquivos(info_arquivos_t *info_arquivos, const unsigned n_arquivos);
+void inicializar_info_arquivos(info_arquivos_t *info_arquivos, const unsigned n_arquivos);
 
-bool inicializar_info_arquivos(info_arquivos_t *info_arquivos, unsigned (funcao_conversora) (const char[]), manipulador_arquivos_t *manipulador_arquivos);
+bool inicializar_estado_arquivos(info_arquivos_t *info_arquivos, unsigned (funcao_conversora) (const char[]), manipulador_arquivos_t *manipulador_arquivos);
 
 // Métodos de interação com info_arquivos.
 
@@ -69,13 +69,24 @@ void obter_arquivos_completos(info_arquivos_t *info_arquivos, unsigned arquivos_
 
 estado_progresso_t obter_estado_arquivo(info_arquivos_t *info_arquivos, const unsigned id_arquivo);
 
-bool arquivo_para_em_progresso(info_arquivos_t *info_arquivos, const unsigned id_usuario, const unsigned id_arquivo);
+bool mudar_arquivo_para_em_progresso(info_arquivos_t *info_arquivos, const unsigned id_usuario, const unsigned id_arquivo);
 // bool arquivo_para_completo();
 
 // Métodos de iteração com `lista_tarefa`.
 
-// Para cada chamada de `adicionar_tarefa`, deve-se ter uma chamada de `completar_tarefa`.
-void adicionar_tarefa(lista_mensagem_t *lista_tarefa, const unsigned id_usuario, const unsigned id_arquivo);
-void completar_tarefa(lista_mensagem_t *lista_tarefa, const unsigned id_usuario, const unsigned id_arquivo);
+/*
+    Adiciona a tarefa <id_usuario_tarefa, id_arquivo_tarefa> à lista de tarefas
+    do usuário cujo id é `id_usuario`.
+
+    Nota: para cada chamada de `adicionar_tarefa`, deve-se ter uma chamada de `completar_tarefa`.
+*/
+void adicionar_tarefa(lista_mensagem_t *lista_tarefa, const unsigned id_usuario, const unsigned id_usuario_tarefa, const unsigned id_arquivo_tarefa);
+/*
+    Completa a tarefa <id_usuario_tarefa, id_arquivo_tarefa> e a remove da lista de tarefas
+    do usuário cujo id é `id_usuario`.
+
+    Nota: para cada chamada de `adicionar_tarefa`, deve-se ter uma chamada de `completar_tarefa`.
+*/
+void completar_tarefa(lista_mensagem_t *lista_tarefa, const unsigned id_usuario, const unsigned id_usuario_tarefa, const unsigned id_arquivo_tarefa);
 
 #endif // INFO_USUARIO_H

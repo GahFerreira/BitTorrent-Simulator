@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
 
     // Informações compartilhadas entre as threads.
     info_compartilhada_t compartilhado;
-    construir_info_compartilhada(&compartilhado, n_usuarios, n_max_arquivos);
+    inicializar_info_compartilhada(&compartilhado, n_usuarios, n_max_arquivos);
 
     // Instanciação das threads a serem usadas.
     pthread_t usuario[n_usuarios];
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
     // Inicia as threads.
     for (unsigned i_usuario = 0; i_usuario < n_usuarios; ++i_usuario)
     {
-        printf("Criacao do usuario %u\n", i_usuario+1);
+        printf("Criacao do usuario %u\n\n", i_usuario+1);
         pthread_create(&usuario[i_usuario], NULL, (void * (*)(void *)) iniciar_usuario, (void *) &compartilhado);
     }
 
@@ -78,11 +78,10 @@ int main(int argc, char *argv[])
     for (unsigned i_usuario = 0; i_usuario < n_usuarios; ++i_usuario)
     {
         pthread_join(usuario[i_usuario], NULL);
-        printf("Usuario %u terminou\n", i_usuario+1);
+        printf("Usuario %u terminou\n\n", i_usuario+1);
     }
-    printf("\n");
 
-    printf("Fim do programa\n");
+    printf("Fim do programa\n\n");
 
     return 0;
 }

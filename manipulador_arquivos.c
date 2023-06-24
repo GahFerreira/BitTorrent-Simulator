@@ -6,7 +6,7 @@
 
 #include "manipulador_arquivos.h"
 
-void construir_manipulador_arquivos(manipulador_arquivos_t *manipulador_arquivos, const char *nome_diretorio, const unsigned max_caracteres_nome_diretorio)
+void inicializar_manipulador_arquivos(manipulador_arquivos_t *manipulador_arquivos, const char *nome_diretorio, const unsigned max_caracteres_nome_diretorio)
 {
     manipulador_arquivos->nome_diretorio = (char *) calloc(max_caracteres_nome_diretorio, sizeof(char)); 
     strcpy(manipulador_arquivos->nome_diretorio, nome_diretorio);

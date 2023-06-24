@@ -17,7 +17,7 @@ struct manipulador_arquivos
     struct dirent *propriedades_arquivo;
 };
 
-void construir_manipulador_arquivos(manipulador_arquivos_t *manipulador_arquivos, const char *nome_diretorio, const unsigned max_caracteres_nome_diretorio);
+void inicializar_manipulador_arquivos(manipulador_arquivos_t *manipulador_arquivos, const char *nome_diretorio, const unsigned max_caracteres_nome_diretorio);
 
 bool abrir_diretorio(manipulador_arquivos_t *manipulador_arquivos);
 void fechar_diretorio(manipulador_arquivos_t *manipulador_arquivos);

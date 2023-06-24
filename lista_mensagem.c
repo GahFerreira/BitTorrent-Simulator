@@ -84,14 +84,14 @@ const void *extrair_primeiro_lista_mensagem(lista_mensagem_t *lista_mensagem)
 
     pthread_mutex_unlock(&lista_mensagem->mutex_mensagem);
 
+    #if DEBUG >= 7
     /*
-        TODO: Refatorar para um DEBUG interno.
-        Como é esperado o comportamento de extrair numa lista vazia, não há porque apresentar esse erro.
+        O comportamento de extrair elemento em lista vazia é esperado e usado em algumas funções.
 
-        // Fora do lock pois não afeta o estado de `lista_mensagem`.
-
-        if (resultado == NULL) printf("AVISO: Falha em extrair primeiro elemento de lista de mensagens. [lista_mensagem::extrair_primeiro_lista_mensagem]\n\n");
+        Está fora do lock pois não afeta o estado de `lista_mensagem`.
     */
+    if (resultado == NULL) printf("AVISO: Falha em extrair primeiro elemento de lista de mensagens. [lista_mensagem::extrair_primeiro_lista_mensagem]\n\n");
+    #endif
 
     return resultado;
 }

@@ -9,6 +9,7 @@
 #include "util.h"
 #include "processamento_mensagens.h"
 #include "solicitar_arquivos.h"
+#include "gerenciar_buffers.h"
 
 void *iniciar_usuario(info_compartilhada_t *compartilhado)
 {
@@ -32,11 +33,13 @@ void *iniciar_usuario(info_compartilhada_t *compartilhado)
     info_total.info_compartilhada = compartilhado;
     info_total.info_usuario = &minhas_informacoes;
 
-    pthread_t th_processar_mensagens, th_solicitar_arquivos;// th_salvar_em_disco, th_enviar_fragmentos;
+    pthread_t th_processar_mensagens, th_solicitar_arquivos, th_gerenciar_buffers; //th_enviar_fragmentos;
 
     pthread_create(&th_processar_mensagens, NULL, (void * (*) (void *)) processar_mensagens_recebidas, (void *) &info_total);
 
     pthread_create(&th_solicitar_arquivos, NULL, (void * (*) (void *)) solicitar_arquivos, (void *) &info_total);
+
+	pthread_create(&th_gerenciar_buffers, NULL, (void * (*) (void *)) gerenciar_buffers, (void *) &info_total);
 
     pthread_join(th_processar_mensagens, NULL);
     pthread_join(th_solicitar_arquivos, NULL);
@@ -55,21 +58,21 @@ void *iniciar_usuario(info_compartilhada_t *compartilhado)
 
 bool inicializar_usuario(info_usuario_t *informacoes_usuario, const info_compartilhada_t *compartilhado, manipulador_arquivos_t *manipulador_arquivos)
 {
-	#if DEBUG >= 3
+	#if DEBUG >= 4
 	printf("[DEBUG-3] Novo usuario a ser inicializado. Id: %u\n\n", (unsigned) pthread_self()-1);
 	#endif
 
-    construir_info_usuario(informacoes_usuario, (unsigned) pthread_self()-1, compartilhado->n_arquivos);
+    inicializar_info_usuario(informacoes_usuario, (unsigned) pthread_self()-1, compartilhado->n_arquivos);
 
     // Novo escopo temporário para evitar mais uma alocação dinâmica.
     {
         char nome_diretorio[compartilhado->max_caracteres_dir_usuario];
         id_usuario_para_nome_diretorio(nome_diretorio, informacoes_usuario->id_usuario);
 
-        construir_manipulador_arquivos(manipulador_arquivos, nome_diretorio, compartilhado->max_caracteres_dir_usuario);
+        inicializar_manipulador_arquivos(manipulador_arquivos, nome_diretorio, compartilhado->max_caracteres_dir_usuario);
     }
 
-    if (!inicializar_info_arquivos(&informacoes_usuario->info_arquivos, nome_arquivo_para_id, manipulador_arquivos))
+    if (!inicializar_estado_arquivos(&informacoes_usuario->info_arquivos, nome_arquivo_para_id, manipulador_arquivos))
     {
         printf("[[ERRO]] Falha em inicializar estados de arquivos do usuario %u. [usuario::inicializar_usuario]\n\n", informacoes_usuario->id_usuario+1);
 
@@ -90,7 +93,7 @@ bool inicializar_usuario(info_usuario_t *informacoes_usuario, const info_compart
 */
 void conectar_usuario(const info_usuario_t *informacoes_usuario, info_compartilhada_t *compartilhado)
 {
-    #if DEBUG >= 3
+    #if DEBUG >= 4
     printf("[DEBUG-3] Inicio da conexao do usuario %u\n\n", informacoes_usuario->id_usuario+1);
     #endif
 
@@ -115,7 +118,7 @@ void conectar_usuario(const info_usuario_t *informacoes_usuario, info_compartilh
     // O usuário adiciona a si próprio na lista compartilhada de usuários conectados.
     adicionar_elemento_lista_encadeada(&compartilhado->usuarios_conectados.mensagens, &informacoes_usuario->id_usuario);
 
-    #if DEBUG >= 3
+    #if DEBUG >= 4
     printf("[DEBUG-3] Usuario %u parcialmente conectado. Avisando aos outros usuarios sobre sua conexao.\n\n", informacoes_usuario->id_usuario+1);
     #endif
 
@@ -138,8 +141,8 @@ void conectar_usuario(const info_usuario_t *informacoes_usuario, info_compartilh
         adicionar_elemento_lista_mensagem(&compartilhado->novos_usuarios_conectados[usuario_atual], &informacoes_usuario->id_usuario);
     }
 
-    #if DEBUG >= 3
-    printf("[DEBUG-3] Usuario %u totalmente conectado. Demais usuarios ja avisados sobre sua conexao.\n\n", informacoes_usuario->id_usuario+1);
+    #if DEBUG >= 4
+    printf("[DEBUG-3] Usuario %u totalmente conectado. Demais usuarios avisados sobre sua conexao.\n\n", informacoes_usuario->id_usuario+1);
     #endif
 }
 

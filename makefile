@@ -16,7 +16,7 @@ FLAGS_EXTRAS = -g -D_GLIBCOMPILADOR_DEBUG -D_GLIBCOMPILADOR_DEBUG_PEDANTIC -D_FO
 
 FLAGS = $(FLAGS_BASICAS) $(FLAGS_REGULARES) $(FLAGS_EXTRAS)
 
-TODOS_PONTO_O = util.o dado_concorrente.o lista_encadeada.o lista_mensagem.o manipulador_arquivos.o info_compartilhada.o info_usuario.o info_total.o solicitar_arquivos.o processamento_mensagens.o par_usuario_arquivo.o usuario.o main.o
+TODOS_PONTO_O = util.o dado_concorrente.o lista_encadeada.o lista_mensagem.o buffer.o manipulador_arquivos.o info_compartilhada.o info_usuario.o info_total.o gerenciar_buffers.o solicitar_arquivos.o processamento_mensagens.o par_usuario_arquivo.o usuario.o main.o
 
 # Regras
 
@@ -84,6 +84,9 @@ processamento_mensagens.o: processamento_mensagens.c processamento_mensagens.h
 solicitar_arquivos.o: solicitar_arquivos.c solicitar_arquivos.h
 	$(COMPILADOR) $(FLAGS) -c solicitar_arquivos.c
 
+gerenciar_buffers.o: gerenciar_buffers.c gerenciar_buffers.h
+	$(COMPILADOR) $(FLAGS) -c gerenciar_buffers.c
+
 info_total.o: info_total.c info_total.h
 	$(COMPILADOR) $(FLAGS) -c info_total.c
 
@@ -92,6 +95,9 @@ info_usuario.o: info_usuario.c info_usuario.h
 
 info_compartilhada.o: info_compartilhada.c info_compartilhada.h
 	$(COMPILADOR) $(FLAGS) -c info_compartilhada.c
+
+buffer.o: buffer.c buffer.h
+	$(COMPILADOR) $(FLAGS) -c buffer.c
 
 lista_mensagem.o: lista_mensagem.c lista_mensagem.h
 	$(COMPILADOR) $(FLAGS) -c lista_mensagem.c
