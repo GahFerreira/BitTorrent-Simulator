@@ -9,7 +9,7 @@
 #define INVALIDO UINT_MAX
 
 // `acessar_fragmento(buffer, i_fragmento)` acessa o [i]ésimo fragmento do buffer `*buffer`.
-#define acessar_fragmento(buffer, i_fragmento) (buffer->dados_fragmentos[(unsigned) (i_fragmento * buffer->tam_fragmento)])
+#define acessar_fragmento(buffer, i_fragmento) (buffer->dados_fragmentos[(unsigned) ((i_fragmento % buffer->n_fragmentos) * buffer->tam_fragmento)])
 
 typedef unsigned char byte;
 typedef struct buffer buffer_t;

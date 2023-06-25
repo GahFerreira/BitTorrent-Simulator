@@ -45,11 +45,11 @@ void *enviar_fragmentos(info_total_t *info_total)
                     printf("[[ERRO]] Falha na leitura do disco do fragmento %u do arquivo %u do usuario %u. [enviar_fragmentos::enviar_fragmentos]\n\n", id_fragmento, tarefa.id_arquivo+1, id_usuario+1);
                 }
 
-            //     trancar_buffer(buffer_usuario_arquivo);
+                trancar_buffer(buffer_usuario_arquivo);
 
-            //     gravar_fragmento_buffer(buffer_usuario_arquivo, id_fragmento, fragmento);
+                gravar_fragmento_buffer(buffer_usuario_arquivo, id_fragmento, fragmento);
 
-            //     destrancar_buffer(buffer_usuario_arquivo);
+                destrancar_buffer(buffer_usuario_arquivo);
             }
         }
 
