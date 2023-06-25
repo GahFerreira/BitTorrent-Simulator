@@ -12,7 +12,7 @@ FLAGS_BASICAS = -Wall -Wextra -pedantic -O3
 
 FLAGS_REGULARES = -Waggregate-return -Wcast-align -Wcast-qual -Wconversion -Wdouble-promotion -Wduplicated-cond -Wfloat-equal -Wformat=2 -Wformat-overflow -Wformat-nonliteral -Wformat-security -Wformat-signedness -Wformat-truncation -Winit-self -Wlogical-op -Wnonnull-compare -Wpointer-arith -Wshadow -Wshift-overflow=2 -Wstrict-overflow=5 -Wswitch-default -Wswitch-enum -Wundef -Wunreachable-code -Wwrite-strings
 
-FLAGS_EXTRAS = -g -D_GLIBCOMPILADOR_DEBUG -D_GLIBCOMPILADOR_DEBUG_PEDANTIC -D_FORTIFY_SOURCE=2 -fno-sanitize-recover -fstack-protector
+FLAGS_EXTRAS = -g -D_GLIBCOMPILADOR_DEBUG -D_GLIBCOMPILADOR_DEBUG_PEDANTIC -D_FORTIFY_SOURCE=2 -fno-sanitize-recover -fstack-protector -lpthread
 
 FLAGS = $(FLAGS_BASICAS) $(FLAGS_REGULARES) $(FLAGS_EXTRAS)
 
