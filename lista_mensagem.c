@@ -10,7 +10,7 @@
 void inicializar_lista_mensagem(lista_mensagem_t *lista_mensagem)
 {
     inicializar_lista_encadeada(&lista_mensagem->mensagens);
-    lista_mensagem->mutex_mensagem = PTHREAD_MUTEX_INITIALIZER;
+    pthread_mutex_init(&lista_mensagem->mutex_mensagem, NULL);
 }
 
 void inicializar_multiplas_listas_mensagem(lista_mensagem_t **listas_mensagem, const unsigned n_listas_mensagem)

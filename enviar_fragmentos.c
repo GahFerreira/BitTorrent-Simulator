@@ -21,9 +21,9 @@ void *enviar_fragmentos(info_total_t *info_total)
             // #endif
             buffer_t *buffer_usuario_arquivo = info_total->info_compartilhada->buffers_usuarios[tarefa.id_usuario][tarefa.id_arquivo];
 
-            // // Acessa e tranca o buffer do usuário se ele não estiver trancado.
-            // if ( tentar_trancar_buffer(buffer_usuario_arquivo) == true )
-            // {
+            // Acessa e tranca o buffer do usuário se ele não estiver trancado.
+            if ( tentar_trancar_buffer(buffer_usuario_arquivo) == true )
+            {
             //     // Obtém o id de um fragmento do arquivo da tarefa.
             //     const unsigned id_fragmento = obter_id_fragmento_necessario(buffer_usuario_arquivo);
 
@@ -35,7 +35,7 @@ void *enviar_fragmentos(info_total_t *info_total)
 
             //     const unsigned n_bytes_para_ler = obter_quantidade_bytes_para_ler(buffer_usuario_arquivo, id_fragmento);
 
-            //     destrancar_buffer(buffer_usuario_arquivo);
+                destrancar_buffer(buffer_usuario_arquivo);
 
             //     byte fragmento[n_bytes_para_ler];
 
@@ -50,7 +50,7 @@ void *enviar_fragmentos(info_total_t *info_total)
             //     gravar_fragmento_buffer(buffer_usuario_arquivo, id_fragmento, fragmento);
 
             //     destrancar_buffer(buffer_usuario_arquivo);
-            // }
+            }
         }
 
         else meu_sleep(100);

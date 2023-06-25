@@ -9,10 +9,10 @@ void inicializar_info_compartilhada(info_compartilhada_t *info_compartilhada, co
     info_compartilhada->finalizar_execucao = false;
     
     info_compartilhada->n_usuarios_finalizados = 0;
-    info_compartilhada->mutex_n_usuarios_finalizados = PTHREAD_MUTEX_INITIALIZER;
+    pthread_mutex_init(&info_compartilhada->mutex_n_usuarios_finalizados, NULL);
 
     info_compartilhada->id_prox_usuario = 0;
-    info_compartilhada->mutex_id_prox_usuario = PTHREAD_MUTEX_INITIALIZER;
+    pthread_mutex_init(&info_compartilhada->mutex_id_prox_usuario, NULL);
 
     info_compartilhada->n_usuarios = n_usuarios;
     info_compartilhada->n_arquivos = n_arquivos;

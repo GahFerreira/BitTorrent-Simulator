@@ -27,7 +27,7 @@ buffer_t *construir_buffer(const unsigned n_fragmentos, const unsigned tam_fragm
 
     inicializar_lista_encadeada(&novo_buffer->fragmentos_necessarios);
 
-    novo_buffer->mutex_buffer = PTHREAD_MUTEX_INITIALIZER;
+    pthread_mutex_init(&novo_buffer->mutex_buffer, NULL);
 
     return novo_buffer;
 }

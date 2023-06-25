@@ -66,7 +66,7 @@ bool inicializar_info_arquivos(info_arquivos_t *info_arquivos, manipulador_arqui
     printf("\n");
     #endif
 
-    info_arquivos->mutex_info_arquivos = PTHREAD_MUTEX_INITIALIZER;
+    pthread_mutex_init(&info_arquivos->mutex_info_arquivos, NULL);
 
     return true;
 }
@@ -374,7 +374,10 @@ bool obter_proxima_tarefa(lista_mensagem_t *lista_tarefa, par_usuario_arquivo_t 
     bool resultado = obter_primeiro_e_o_por_no_fim(lista_tarefa, prox_tarefa, sizeof(par_usuario_arquivo_t));
 
     //#if DEBUG >= 8
-    printf("[DEBUG-8] Valores de prox_tarefa apos obter_proxima_tarefa: <usuario: %u, arquivo: %u>.\n\n", prox_tarefa->id_usuario+1, prox_tarefa->id_arquivo+1);
+    if (resultado == true)
+    {
+        printf("[DEBUG-8] Proxima tarefa obtida com sucesso em obter_proxima_tarefa: <usuario: %u, arquivo: %u>.\n\n", prox_tarefa->id_usuario+1, prox_tarefa->id_arquivo+1);
+    }
     //#endif
 
     return resultado;
