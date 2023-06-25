@@ -141,9 +141,9 @@ void checar_solicitacoes_arquivo(info_total_t *info_total, lista_mensagem_t *sol
             trancar_buffer(buffer_usuario_arquivo);
             trancar_info_arquivos(&info_total->info_usuario->info_arquivos);
 
-            //#if DEBUG >= 5
+            #if DEBUG >= 5
             printf("[DEBUG-5] Usuario %u informa ao usuario %u que o nome do arquivo de id %u eh %s e o tamanho eh %u.\n\n", id_usuario+1, solicitacao_arquivo->id_usuario+1, solicitacao_arquivo->id_arquivo+1, info_total->info_usuario->info_arquivos.nome_arquivos[solicitacao_arquivo->id_arquivo], info_total->info_usuario->info_arquivos.tamanho_arquivos[solicitacao_arquivo->id_arquivo]);
-            //#endif
+            #endif
 
             informar_dados_arquivo(buffer_usuario_arquivo, info_total->info_usuario->info_arquivos.tamanho_arquivos[solicitacao_arquivo->id_arquivo], info_total->info_usuario->info_arquivos.nome_arquivos[solicitacao_arquivo->id_arquivo]);
 
