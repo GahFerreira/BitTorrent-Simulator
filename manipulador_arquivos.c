@@ -130,9 +130,9 @@ bool criar_arquivo_diretorio(manipulador_arquivos_t *manipulador_arquivos, const
     printf("[DEBUG-1] Criacao de arquivo com caminho %s.\n\n", caminho_arquivo);
     #endif
 
-    if ( (manipulador_arquivos->ponteiro_arquivos[id_arquivo] = fopen(caminho_arquivo, "wb")) == NULL)
+    if ( (manipulador_arquivos->ponteiro_arquivos[id_arquivo] = fopen(caminho_arquivo, "w+b")) == NULL)
     {
-        printf("[[ERRO]] Falha em criar arquivo com caminho %s.[manipulador_arquivos::criar_arquivo_diretorio]\n\n", caminho_arquivo);
+        printf("[[ERRO]] Falha em criar arquivo com caminho %s. [manipulador_arquivos::criar_arquivo_diretorio]\n\n", caminho_arquivo);
 
         return false;
     }

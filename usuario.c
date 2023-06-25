@@ -10,6 +10,7 @@
 #include "processamento_mensagens.h"
 #include "solicitar_arquivos.h"
 #include "gerenciar_buffers.h"
+#include "enviar_fragmentos.h"
 
 void *iniciar_usuario(info_compartilhada_t *info_compartilhada)
 {
@@ -43,12 +44,12 @@ void *iniciar_usuario(info_compartilhada_t *info_compartilhada)
 
 	pthread_create(&th_gerenciar_buffers, NULL, (void * (*) (void *)) gerenciar_buffers, (void *) &info_total);
 
-	//pthread_create(&th_enviar_fragmentos, NULL, (void * (*) (void *)) enviar_fragmentos, (void *) &info_total);
+	pthread_create(&th_enviar_fragmentos, NULL, (void * (*) (void *)) enviar_fragmentos, (void *) &info_total);
 
     pthread_join(th_processar_mensagens, NULL);
     pthread_join(th_solicitar_arquivos, NULL);
     pthread_join(th_gerenciar_buffers, NULL);
-    //pthread_join(th_enviar_fragmentos, NULL);
+    pthread_join(th_enviar_fragmentos, NULL);
 
     meu_sleep(3000);
 
@@ -69,7 +70,7 @@ void *iniciar_usuario(info_compartilhada_t *info_compartilhada)
 bool inicializar_usuario(info_usuario_t *informacoes_usuario, info_compartilhada_t *info_compartilhada)
 {
 	#if DEBUG >= 4
-	printf("[DEBUG-3] Novo usuario a ser inicializado. Id: %u\n\n", (unsigned) pthread_self()-1);
+	printf("[DEBUG-3] Novo usuario a ser inicializado. Id da sua thread: %u\n\n", (unsigned) pthread_self()-1);
 	#endif
 
     if ( inicializar_info_usuario(informacoes_usuario, obter_id_prox_usuario(info_compartilhada), info_compartilhada->n_arquivos, info_compartilhada->max_caracteres_dir_usuario) == false )

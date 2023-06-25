@@ -33,7 +33,7 @@ void *gerenciar_buffers(info_total_t *info_total)
                     // Cria o arquivo.
                     if ( criar_arquivo_diretorio(&info_total->info_usuario->manipulador_arquivos, info_total->info_usuario->info_arquivos.nome_arquivos[i_arquivo], i_arquivo, buffer_arquivo->tam_arquivo) == false )
                     {
-                        printf("[[ERRO]] Falha ao criar arquivo %s do usuario %u.\n\n", info_total->info_usuario->info_arquivos.nome_arquivos[i_arquivo], info_total->info_usuario->id_usuario);
+                        printf("[[ERRO]] Falha ao criar arquivo %s do usuario %u.\n\n", info_total->info_usuario->info_arquivos.nome_arquivos[i_arquivo], info_total->info_usuario->id_usuario+1);
                     }
                     
                     buffer_arquivo->arquivo_criado = true;
@@ -87,9 +87,9 @@ bool gravar_buffer_disco(FILE *arquivo_destino, buffer_t *buffer)
 
     const unsigned qtd_bytes_para_gravar = obter_quantidade_bytes_para_gravar(buffer);
 
-    if (fwrite(buffer->dados_fragmentos, sizeof(byte), qtd_bytes_para_gravar, arquivo_destino) != 1)
+    if (fwrite(buffer->dados_fragmentos, sizeof(byte), qtd_bytes_para_gravar, arquivo_destino) != qtd_bytes_para_gravar)
     {
-        printf("[[ERRO]] Falha na escrita do arquivo. [gerenciar_buffers::gravar_buffer_disco]\n\n");
+        printf("[[ERRO]] Falha na escrita do arquivo: fwrite falhou. [gerenciar_buffers::gravar_buffer_disco]\n\n");
 
         return false;
     }

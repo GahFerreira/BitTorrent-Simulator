@@ -57,7 +57,7 @@ bool inicializar_info_arquivos(info_arquivos_t *info_arquivos, manipulador_arqui
     }
 
     #if DEBUG >= 3
-    printf("[[DEBUG-3]] Valores de `nome_arquivos` do diretorio %s apos inicializacao:\n", manipulador_arquivos->nome_diretorio);
+    printf("[DEBUG-3] Valores de `nome_arquivos` do diretorio %s apos inicializacao:\n", manipulador_arquivos->nome_diretorio);
 
     for (unsigned i_arquivo = 0; i_arquivo < n_arquivos; ++i_arquivo)
     {
@@ -367,4 +367,15 @@ void completar_tarefa(lista_mensagem_t *lista_tarefa, const unsigned id_usuario,
     }
 
     else free((par_usuario_arquivo_t *) tarefa_a_completar);
+}
+
+bool obter_proxima_tarefa(lista_mensagem_t *lista_tarefa, par_usuario_arquivo_t *prox_tarefa)
+{
+    bool resultado = obter_primeiro_e_o_por_no_fim(lista_tarefa, prox_tarefa, sizeof(par_usuario_arquivo_t));
+
+    //#if DEBUG >= 8
+    printf("[DEBUG-8] Valores de prox_tarefa apos obter_proxima_tarefa: <usuario: %u, arquivo: %u>.\n\n", prox_tarefa->id_usuario+1, prox_tarefa->id_arquivo+1);
+    //#endif
+
+    return resultado;
 }

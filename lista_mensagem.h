@@ -39,6 +39,12 @@ void adicionar_elementos_lista_mensagem(lista_mensagem_t *lista_mensagem, const 
 const void *extrair_elemento_lista_mensagem(lista_mensagem_t *lista_mensagem, const void *elemento, bool (funcao_comparacao) (const void *, const void *));
 // Remove o primeiro elemento da lista e o retorna.
 const void *extrair_primeiro_lista_mensagem(lista_mensagem_t *lista_mensagem);
+/*
+    Faz uma cópia do primeiro elemento, que é retornada, e o coloca no final da lista.
+
+    Retorna `true` se a lista não estiver vazia, e `false` caso contrário.
+*/
+bool obter_primeiro_e_o_por_no_fim(lista_mensagem_t *lista_mensagem, void *destino, const unsigned tamanho);
 
 void obter_dados_lista_mensagem(lista_mensagem_t *lista_mensagem, const void **destino);
 

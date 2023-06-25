@@ -11,6 +11,7 @@
 
 #include "manipulador_arquivos.h"
 #include "lista_mensagem.h"
+#include "par_usuario_arquivo.h"
 
 typedef unsigned char estado_progresso_t;
 typedef struct info_usuario info_usuario_t;
@@ -100,5 +101,9 @@ void adicionar_tarefa(lista_mensagem_t *lista_tarefa, const unsigned id_usuario,
     Nota: para cada chamada de `adicionar_tarefa`, deve-se ter uma chamada de `completar_tarefa`.
 */
 void completar_tarefa(lista_mensagem_t *lista_tarefa, const unsigned id_usuario, const unsigned id_usuario_tarefa, const unsigned id_arquivo_tarefa);
+/*
+    Obtém a próxima tarefa a ser realizada, colocando-a ao final da lista de tarefas.
+*/
+bool obter_proxima_tarefa(lista_mensagem_t *lista_tarefa, par_usuario_arquivo_t *prox_tarefa);
 
 #endif // INFO_USUARIO_H

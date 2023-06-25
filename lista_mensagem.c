@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
 #include <pthread.h>
 
 #include "lista_mensagem.h"
@@ -92,6 +93,28 @@ const void *extrair_primeiro_lista_mensagem(lista_mensagem_t *lista_mensagem)
     */
     if (resultado == NULL) printf("[AVISO] Falha em extrair primeiro elemento de lista de mensagens. [lista_mensagem::extrair_primeiro_lista_mensagem]\n\n");
     #endif
+
+    return resultado;
+}
+
+bool obter_primeiro_e_o_por_no_fim(lista_mensagem_t *lista_mensagem, void *destino, const unsigned tamanho)
+{
+    bool resultado = false;
+
+    pthread_mutex_lock(&lista_mensagem->mutex_mensagem);
+    
+    if (esta_vazia_lista_encadeada(&lista_mensagem->mensagens) == false)
+    {
+        resultado = true;
+
+        const void *elemento = extrair_primeiro_lista_encadeada(&lista_mensagem->mensagens);
+
+        memcpy(destino, elemento, tamanho);
+
+        adicionar_elemento_lista_encadeada(&lista_mensagem->mensagens, elemento);
+    }    
+
+    pthread_mutex_unlock(&lista_mensagem->mutex_mensagem);
 
     return resultado;
 }

@@ -42,6 +42,12 @@ void trancar_buffer(buffer_t *buffer)
     pthread_mutex_lock(&buffer->mutex_buffer);
 }
 
+bool tentar_trancar_buffer(buffer_t *buffer)
+{
+    if (pthread_mutex_trylock(&buffer->mutex_buffer) == 0) return true;
+    return false;
+}
+
 void destrancar_buffer(buffer_t *buffer)
 {
     pthread_mutex_unlock(&buffer->mutex_buffer);
@@ -100,6 +106,11 @@ void adicionar_id_fragmento_necessario_na_lista(buffer_t *buffer, const unsigned
 
 unsigned obter_id_fragmento_necessario(buffer_t *buffer)
 {
+    if (esta_vazia_lista_encadeada(&buffer->fragmentos_necessarios) == true)
+    {
+        return INVALIDO;
+    }
+
     const unsigned *id_fragmento_necessario = extrair_primeiro_lista_encadeada(&buffer->fragmentos_necessarios);
     unsigned resposta = *id_fragmento_necessario;
 
@@ -108,7 +119,8 @@ unsigned obter_id_fragmento_necessario(buffer_t *buffer)
     return resposta;
 }
 
-void gravar_fragmento(buffer_t *buffer, const unsigned id_fragmento, byte fragmento[])
+// Grava um fragmento no buffer.
+void gravar_fragmento_buffer(buffer_t *buffer, const unsigned id_fragmento, byte fragmento[])
 {
     memcpy(&acessar_fragmento(buffer, id_fragmento), fragmento, sizeof(byte) * buffer->tam_fragmento);
 
@@ -123,4 +135,18 @@ unsigned obter_quantidade_bytes_para_gravar(buffer_t *buffer)
 
     if (n_bytes_restantes_para_gravar < tamanho_buffer_cheio) return n_bytes_restantes_para_gravar;
     return tamanho_buffer_cheio;
+}
+
+unsigned obter_quantidade_bytes_para_ler(buffer_t *buffer, const unsigned id_fragmento)
+{
+    /*
+        Se ler todos os fragmentos antes desse + esse passa o tamanho do arquivo,
+        então eu leio 
+    */
+    if ((id_fragmento+1) * buffer->tam_fragmento > buffer->tam_arquivo)
+    {
+        return buffer->tam_arquivo - (id_fragmento * buffer->tam_fragmento);
+    }
+
+    return buffer->tam_fragmento;
 }

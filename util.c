@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
 #include <time.h>
 
 #include "util.h"
@@ -26,14 +27,14 @@ void meu_sleep(unsigned milisegundos)
     // `nanosleep` está no posix.
     #elif _POSIX_C_SOURCE >= 199309L
     struct timespec ts;
-    ts.tv_sec = milliseconds / 1000;
-    ts.tv_nsec = (milliseconds % 1000) * 1000000;
+    ts.tv_sec = milisegundos / 1000;
+    ts.tv_nsec = (milisegundos % 1000) * 1000000;
     nanosleep(&ts, NULL);
 
     // `usleep` foi retirada do posix em 2008.
     #else
-    if (milliseconds >= 1000) sleep(milliseconds / 1000);
-    usleep((milliseconds % 1000) * 1000);
+    if (milisegundos >= 1000) sleep(milisegundos / 1000);
+    usleep((milisegundos % 1000) * 1000);
     #endif
 }
 
