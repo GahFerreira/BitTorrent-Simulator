@@ -1,6 +1,6 @@
 #ifdef _WIN32
 #include <windows.h>
-#elif !_POSIX_C_SOURCE >= 199309L
+#else
 #include <unistd.h>
 #endif
 
@@ -25,16 +25,11 @@ void meu_sleep(unsigned milisegundos)
     Sleep(milisegundos);
 
     // `nanosleep` está no posix.
-    #elif _POSIX_C_SOURCE >= 199309L
+    #else _POSIX_C_SOURCE >= 199309L
     struct timespec ts;
     ts.tv_sec = milisegundos / 1000;
     ts.tv_nsec = (milisegundos % 1000) * 1000000;
     nanosleep(&ts, NULL);
-
-    // `usleep` foi retirada do posix em 2008.
-    #else
-    if (milisegundos >= 1000) sleep(milisegundos / 1000);
-    usleep((milisegundos % 1000) * 1000);
     #endif
 }
 

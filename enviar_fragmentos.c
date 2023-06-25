@@ -10,15 +10,15 @@ void *enviar_fragmentos(info_total_t *info_total)
 
     while (info_total->info_compartilhada->finalizar_execucao == false)
     {
-        //#if DEBUG >= 8
+        #if DEBUG >= 8
         printf("[DEBUG-8] Usuario %u tenta obter proxima tarefa.\n\n", id_usuario+1);
-        //#endif
+        #endif
 
         if (obter_proxima_tarefa(&info_total->info_usuario->lista_tarefas, &tarefa) == true)
         {
-            // #if DEBUG >= 7
+            #if DEBUG >= 7
             printf("[DEBUG-7] Tentativa de acessar buffer do usuario %u arquivo %u.\n\n", tarefa.id_usuario+1, tarefa.id_arquivo+1);
-            // #endif
+            #endif
             buffer_t *buffer_usuario_arquivo = info_total->info_compartilhada->buffers_usuarios[tarefa.id_usuario][tarefa.id_arquivo];
 
             // Acessa e tranca o buffer do usuário se ele não estiver trancado.

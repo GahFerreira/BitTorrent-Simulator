@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "gerenciar_buffers.h"
 #include "util.h" // TODO: Verificar uso de semáforos (ou auxiliar) para acordar função quando buffer encher.
 
