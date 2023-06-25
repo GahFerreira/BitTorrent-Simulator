@@ -86,7 +86,7 @@ void *solicitar_arquivos(info_total_t *info_total)
             
         }
         
-        meu_sleep(3000 + aleatorio(0, 7000));
+        meu_sleep(3000 + aleatorio(0, 4000));
     }
 
     #if DEBUG >= 1

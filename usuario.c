@@ -22,8 +22,6 @@ void *iniciar_usuario(info_compartilhada_t *info_compartilhada)
         // O id_usuario é garantido de ser inicializado.
         printf("[[ERRO]] Falha em inicializar usuario %u. Finalizando usuario. [usuario::iniciar_usuario]\n\n", info_usuario.id_usuario);
 
-        // TODO: finalizar_usuario()
-
         pthread_exit(NULL);
     }
 
@@ -51,17 +49,9 @@ void *iniciar_usuario(info_compartilhada_t *info_compartilhada)
     pthread_join(th_gerenciar_buffers, NULL);
     pthread_join(th_enviar_fragmentos, NULL);
 
-    meu_sleep(3000);
-
     // Usuário remove a sua conexão do programa.
-    printf("Usuario %u comeca a desconectar.\n\n", info_usuario.id_usuario);
+    printf("Usuario %u comeca a desconectar.\n\n", info_usuario.id_usuario+1);
 
-    extrair_elemento_lista_mensagem(&info_compartilhada->usuarios_conectados, &info_usuario.id_usuario, (bool (*) (const void *, const void *)) comparar_unsigned);
-
-
-
-    /// PARTE X: Destruir estruturas de dados.
-    //finalizar_usuario(&info_usuario, &manipulador_arquivos);
     pthread_exit(NULL);
 
     return NULL; // Sem retorno.
@@ -82,11 +72,6 @@ bool inicializar_usuario(info_usuario_t *informacoes_usuario, info_compartilhada
 
     return true;
 }
-
-// void finalizar_usuario(info_usuario_t *info_usuario, manipulador_arquivos_t *manipulador_arquivos)
-// {
-
-// }
 
 /* 
   A implementação usa diretamente as funções de lista encadeada, pois precisa travar

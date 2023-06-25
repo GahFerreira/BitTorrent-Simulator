@@ -19,6 +19,7 @@ void *enviar_fragmentos(info_total_t *info_total)
             #if DEBUG >= 7
             printf("[DEBUG-7] Tentativa de acessar buffer do usuario %u arquivo %u.\n\n", tarefa.id_usuario+1, tarefa.id_arquivo+1);
             #endif
+
             buffer_t *buffer_usuario_arquivo = info_total->info_compartilhada->buffers_usuarios[tarefa.id_usuario][tarefa.id_arquivo];
 
             // Acessa e tranca o buffer do usuário se ele não estiver trancado.
@@ -35,6 +36,13 @@ void *enviar_fragmentos(info_total_t *info_total)
 
                 const unsigned n_bytes_para_ler = obter_quantidade_bytes_para_ler(buffer_usuario_arquivo, id_fragmento);
 
+                #if DEBUG >= 4
+                if (n_bytes_para_ler != buffer_usuario_arquivo->tam_fragmento)
+                {
+                    printf("[DEBUG-4] Requisicao de leitura de fragmento de %u bytes do arquivo %u do usuario %u para o usuario %u.\n\n", n_bytes_para_ler, tarefa.id_arquivo+1, id_usuario+1, tarefa.id_usuario+1);
+                }
+                #endif
+
                 destrancar_buffer(buffer_usuario_arquivo);
 
                 byte fragmento[n_bytes_para_ler];
@@ -47,13 +55,11 @@ void *enviar_fragmentos(info_total_t *info_total)
 
                 trancar_buffer(buffer_usuario_arquivo);
 
-                gravar_fragmento_buffer(buffer_usuario_arquivo, id_fragmento, fragmento);
+                gravar_fragmento_buffer(buffer_usuario_arquivo, id_fragmento, fragmento, n_bytes_para_ler);
 
                 destrancar_buffer(buffer_usuario_arquivo);
             }
         }
-
-        else meu_sleep(100);
     }
 
     pthread_exit(NULL);

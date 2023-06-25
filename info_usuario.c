@@ -361,12 +361,14 @@ void completar_tarefa(lista_mensagem_t *lista_tarefa, const unsigned id_usuario,
 
     const par_usuario_arquivo_t *tarefa_a_completar = (const par_usuario_arquivo_t *) extrair_elemento_lista_mensagem(lista_tarefa, &tarefa, (bool (*) (const void *, const void *)) comparar_par_usuario_arquivo);
 
-    if (tarefa_a_completar == NULL)
-    {
-        printf("[[ERRO]] Falha em extrair a tarefa <id_usuario: %u, arquivo: %u> da lista de tarefas do usuario %u. [info_usuario.c::completar_tarefa]\n\n", id_usuario_tarefa+1, id_arquivo_tarefa+1, id_usuario+1);
-    }
+    if (tarefa_a_completar != NULL) free((par_usuario_arquivo_t *) tarefa_a_completar);
 
-    else free((par_usuario_arquivo_t *) tarefa_a_completar);
+    #if DEBUG >= 5
+    else
+    {
+        printf("[Aviso] Falha em extrair a tarefa <id_usuario: %u, arquivo: %u> da lista de tarefas do usuario %u. [info_usuario.c::completar_tarefa]\n\n", id_usuario_tarefa+1, id_arquivo_tarefa+1, id_usuario+1);
+    }
+    #endif
 }
 
 bool obter_proxima_tarefa(lista_mensagem_t *lista_tarefa, par_usuario_arquivo_t *prox_tarefa)

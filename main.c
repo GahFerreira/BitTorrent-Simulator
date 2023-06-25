@@ -72,8 +72,6 @@ int main(int argc, char *argv[])
     {
         printf("Criacao do usuario %u\n\n", i_usuario+1);
         pthread_create(&usuario[i_usuario], NULL, (void * (*)(void *)) iniciar_usuario, (void *) &compartilhado);
-
-        meu_sleep(300);
     }
 
     // Espera todas as threads concluírem (necessário pois `compartilhado` é local da main).

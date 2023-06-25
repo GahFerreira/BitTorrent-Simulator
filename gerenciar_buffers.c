@@ -1,7 +1,7 @@
 #include <string.h>
 
 #include "gerenciar_buffers.h"
-#include "util.h" // TODO: Verificar uso de semáforos (ou auxiliar) para acordar função quando buffer encher.
+#include "util.h"
 
 void *gerenciar_buffers(info_total_t *info_total)
 {
@@ -10,10 +10,29 @@ void *gerenciar_buffers(info_total_t *info_total)
 
     buffer_t **buffers_usuario = info_total->info_compartilhada->buffers_usuarios[id_usuario];
 
+    // `arquivos_completos` funciona como uma espécie de cache para acelerar a busca por buffers cheios.
+    bool arquivos_completos[info_total->info_compartilhada->n_arquivos];
+
+    trancar_info_arquivos(&info_total->info_usuario->info_arquivos);
+    
+    for (unsigned i_arquivo = 0; i_arquivo < info_total->info_compartilhada->n_arquivos; ++i_arquivo)
+    {
+        if (info_total->info_usuario->info_arquivos.estado_arquivos[i_arquivo] == COMPLETO)
+        {
+            arquivos_completos[i_arquivo] = true;
+        }
+
+        else arquivos_completos[i_arquivo] = false;
+    }
+
+    destrancar_info_arquivos(&info_total->info_usuario->info_arquivos);
+
     while (info_total->info_compartilhada->finalizar_execucao == false)
     {
         for (unsigned i_arquivo = 0; i_arquivo < n_arquivos; ++i_arquivo)
         {
+            if (arquivos_completos[i_arquivo] == true) continue;
+
             buffer_t *buffer_arquivo = buffers_usuario[i_arquivo];
 
             if (buffer_arquivo != NULL)
@@ -28,7 +47,13 @@ void *gerenciar_buffers(info_total_t *info_total)
                 */
                 if (buffer_arquivo->arquivo_criado == false && buffer_arquivo->dados_arquivo_obtidos == true)
                 {
+                    trancar_info_arquivos(&info_total->info_usuario->info_arquivos);
+
                     info_total->info_usuario->info_arquivos.tamanho_arquivos[i_arquivo] = buffer_arquivo->tam_arquivo;
+
+                    #if DEBUG >= 6
+                    printf("[DEBUG-6] Nome arquivo colocado dentro de buffer_arquivo->nome_arquivo: %s, usuario %u, arquivo %u.\n", buffer_arquivo->nome_arquivo, id_usuario+1, i_arquivo+1);
+                    #endif
 
                     strcpy(info_total->info_usuario->info_arquivos.nome_arquivos[i_arquivo], buffer_arquivo->nome_arquivo); 
 
@@ -37,6 +62,8 @@ void *gerenciar_buffers(info_total_t *info_total)
                     {
                         printf("[[ERRO]] Falha ao criar arquivo %s do usuario %u.\n\n", info_total->info_usuario->info_arquivos.nome_arquivos[i_arquivo], info_total->info_usuario->id_usuario+1);
                     }
+
+                    destrancar_info_arquivos(&info_total->info_usuario->info_arquivos);
                     
                     buffer_arquivo->arquivo_criado = true;
 
@@ -44,6 +71,8 @@ void *gerenciar_buffers(info_total_t *info_total)
                     if (atualizar_buffer(buffer_arquivo) == true)
                     {
                         completar_arquivo(info_total->info_compartilhada, &info_total->info_usuario->info_arquivos, id_usuario, i_arquivo, buffer_arquivo);
+
+                        arquivos_completos[i_arquivo] = true;
                     }
                 }
 
@@ -55,14 +84,14 @@ void *gerenciar_buffers(info_total_t *info_total)
                     if (atualizar_buffer(buffer_arquivo) == true)
                     {
                         completar_arquivo(info_total->info_compartilhada, &info_total->info_usuario->info_arquivos, id_usuario, i_arquivo, buffer_arquivo);
+
+                        arquivos_completos[i_arquivo] = true;
                     }
                 }
 
                 destrancar_buffer(buffer_arquivo);
             }
         }
-
-        meu_sleep(1000);
     }
 
     pthread_exit(NULL);
@@ -101,6 +130,8 @@ bool gravar_buffer_disco(FILE *arquivo_destino, buffer_t *buffer)
 
 void completar_arquivo(info_compartilhada_t *info_compartilhada, info_arquivos_t *info_arquivos, const unsigned id_usuario, const unsigned id_arquivo, buffer_t *buffer)
 {
+    printf("Usuario %u completa arquivo %u.\n\n", id_usuario+1, id_arquivo+1);
+
     bool usuario_completo = false;
 
     trancar_info_arquivos(info_arquivos);
@@ -113,13 +144,15 @@ void completar_arquivo(info_compartilhada_t *info_compartilhada, info_arquivos_t
 
     if (usuario_completo == true)
     {
+        printf("Usuario %u completa todos os arquivos.\n\n", id_usuario+1);
+
         novo_usuario_finalizado(info_compartilhada);
     }
 
     for (unsigned i_usuario = 0; i_usuario < info_compartilhada->n_usuarios; ++i_usuario)
     {
+        if (i_usuario == id_usuario) continue;
+
         enviar_mensagem_arquivo_completo(info_compartilhada, id_usuario, id_arquivo, i_usuario);
     }
-
-    // TODO: Finalizar buffer. É mais difícil do que parece, por causa do mutex de buffer. Inclusive, ele está trancado neste momento.
 }

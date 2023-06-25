@@ -74,7 +74,7 @@ void novo_usuario_finalizado(info_compartilhada_t *info_compartilhada)
 {
     pthread_mutex_lock(&info_compartilhada->mutex_n_usuarios_finalizados);
 
-    --info_compartilhada->n_usuarios_finalizados;
+    ++info_compartilhada->n_usuarios_finalizados;
 
     pthread_mutex_unlock(&info_compartilhada->mutex_n_usuarios_finalizados);
 
@@ -159,7 +159,7 @@ void enviar_mensagem_arquivo_completo(info_compartilhada_t *info_compartilhada, 
     mensagem->id_arquivo = id_arquivo;
     mensagem->id_usuario = usuario_fonte;
 
-    adicionar_elemento_lista_mensagem(&info_compartilhada->solicitacoes_arquivo[usuario_destino], mensagem);
+    adicionar_elemento_lista_mensagem(&info_compartilhada->arquivo_completo[usuario_destino], mensagem);
 }
 
 bool criar_buffer(info_compartilhada_t *info_compartilhada, const unsigned id_usuario, const unsigned id_arquivo)

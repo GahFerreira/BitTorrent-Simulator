@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "buffer.h"
@@ -63,6 +64,7 @@ void informar_dados_arquivo(buffer_t *buffer, const unsigned tam_arquivo, const 
 
 bool atualizar_buffer(buffer_t *buffer)
 {
+    // Atualiza o id do primeiro fragmento do buffer.
     if (buffer->primeira_execucao == true)
     {
         buffer->id_primeiro_fragmento_atual = 0;
@@ -78,11 +80,18 @@ bool atualizar_buffer(buffer_t *buffer)
     */
     const unsigned n_bytes_ja_gravados = buffer->id_primeiro_fragmento_atual * buffer->tam_fragmento;
 
+    // Arquivo concluído.
     if (n_bytes_ja_gravados >= buffer->tam_arquivo) return true;
 
     const unsigned n_bytes_restantes_para_gravar = buffer->tam_arquivo - n_bytes_ja_gravados;
 
-    buffer->n_fragmentos_ausentes = n_bytes_restantes_para_gravar / buffer->tam_fragmento;
+    /*
+        `n_fragmentos_ausentes` é equivalente a: 
+        `ceil(n_bytes_restantes_para_gravar / buffer->tam_fragmento)`.
+
+        Como `ceil` é para doubles, usa-se essa operação matemática para inteiros.
+    */
+    buffer->n_fragmentos_ausentes = (n_bytes_restantes_para_gravar + buffer->tam_fragmento-1) / buffer->tam_fragmento;
 
     if (buffer->n_fragmentos_ausentes > buffer->n_fragmentos)
     {
@@ -120,9 +129,9 @@ unsigned obter_id_fragmento_necessario(buffer_t *buffer)
 }
 
 // Grava um fragmento no buffer.
-void gravar_fragmento_buffer(buffer_t *buffer, const unsigned id_fragmento, byte fragmento[])
+void gravar_fragmento_buffer(buffer_t *buffer, const unsigned id_fragmento, byte fragmento[], const unsigned n_bytes_para_gravar)
 {
-    memcpy(&acessar_fragmento(buffer, id_fragmento), fragmento, sizeof(byte) * buffer->tam_fragmento);
+    memcpy(&acessar_fragmento(buffer, id_fragmento), fragmento, sizeof(byte) * n_bytes_para_gravar);
 
     --buffer->n_fragmentos_ausentes;
 }
@@ -133,7 +142,15 @@ unsigned obter_quantidade_bytes_para_gravar(buffer_t *buffer)
     const unsigned n_bytes_restantes_para_gravar = buffer->tam_arquivo - n_bytes_ja_gravados;
     const unsigned tamanho_buffer_cheio = buffer->n_fragmentos * buffer->tam_fragmento;
 
-    if (n_bytes_restantes_para_gravar < tamanho_buffer_cheio) return n_bytes_restantes_para_gravar;
+    if (n_bytes_restantes_para_gravar < tamanho_buffer_cheio) 
+    {
+        #if DEBUG >= 1
+        printf("[DEBUG-1] Quantidade bytes para gravar no ultimo buffer: %u.\n\n", n_bytes_restantes_para_gravar);
+        #endif
+
+        return n_bytes_restantes_para_gravar;
+    }
+    
     return tamanho_buffer_cheio;
 }
 
@@ -145,6 +162,10 @@ unsigned obter_quantidade_bytes_para_ler(buffer_t *buffer, const unsigned id_fra
     */
     if ((id_fragmento+1) * buffer->tam_fragmento > buffer->tam_arquivo)
     {
+        #if DEBUG >= 1
+        printf("[DEBUG-1] Quantidade bytes para ler do ultimo fragmento: %u == [tam_arquivo: %u - (id_fragmento: %u * tam_fragmento: %u].\n\n", buffer->tam_arquivo - (id_fragmento * buffer->tam_fragmento), buffer->tam_arquivo, id_fragmento, buffer->tam_fragmento);
+        #endif
+
         return buffer->tam_arquivo - (id_fragmento * buffer->tam_fragmento);
     }
 
