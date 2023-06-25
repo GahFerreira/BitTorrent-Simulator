@@ -82,7 +82,7 @@ void obter_arquivos_completos(info_arquivos_t *info_arquivos, unsigned arquivos_
 estado_progresso_t obter_estado_arquivo(info_arquivos_t *info_arquivos, const unsigned id_arquivo);
 
 bool mudar_arquivo_para_em_progresso(info_arquivos_t *info_arquivos, const unsigned id_usuario, const unsigned id_arquivo);
-// bool arquivo_para_completo();
+bool mudar_arquivo_para_completo(info_arquivos_t *info_arquivos, const unsigned id_usuario, const unsigned id_arquivo);
 
 // Métodos de iteração com `lista_tarefa`.
 

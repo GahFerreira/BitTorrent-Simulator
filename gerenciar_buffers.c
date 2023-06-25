@@ -35,26 +35,25 @@ void *gerenciar_buffers(info_total_t *info_total)
                     {
                         printf("[[ERRO]] Falha ao criar arquivo %s do usuario %u.\n\n", info_total->info_usuario->info_arquivos.nome_arquivos[i_arquivo], info_total->info_usuario->id_usuario);
                     }
-
-                    /*
-                        TODO:
-                          3. Reiniciar o buffer
-                    */
-
+                    
                     buffer_arquivo->arquivo_criado = true;
+
+                    // Se o arquivo for finalizado, ou seja, o arquivo tem 0 bytes.
+                    if (atualizar_buffer(buffer_arquivo) == true)
+                    {
+                        completar_arquivo(info_total->info_compartilhada, &info_total->info_usuario->info_arquivos, id_usuario, i_arquivo, buffer_arquivo);
+                    }
                 }
 
-                if (buffer_arquivo->n_fragmentos_ausentes == 0)
+                else if (buffer_arquivo->n_fragmentos_ausentes == 0)
                 {
-                    //info_total->info_usuario->manipulador_arquivos;
-                    /*
-                        TODO:
-                          1. Gravar buffer no disco.
-                          2. Checar se o arquivo está completo.
-                          2.1 Se sim, marcar arquivo como completo e avisar demais usuários.
-                          3. Reinicializar buffer e lista de fragmentos em necessidade
-                    */
-                    //gravar_buffer_disco();
+                    gravar_buffer_disco(info_total->info_usuario->manipulador_arquivos.ponteiro_arquivos[i_arquivo], buffer_arquivo);
+
+                    // Se o arquivo for finalizado, ou seja, o arquivo tem 0 bytes.
+                    if (atualizar_buffer(buffer_arquivo) == true)
+                    {
+                        completar_arquivo(info_total->info_compartilhada, &info_total->info_usuario->info_arquivos, id_usuario, i_arquivo, buffer_arquivo);
+                    }
                 }
 
                 destrancar_buffer(buffer_arquivo);
@@ -86,14 +85,39 @@ bool gravar_buffer_disco(FILE *arquivo_destino, buffer_t *buffer)
         return false;
     }
 
-    
+    const unsigned qtd_bytes_para_gravar = obter_quantidade_bytes_para_gravar(buffer);
 
-    // if (fwrite(buffer->dados_fragmentos, buffer->tam_fragmento, , arquivo_destino) != 1)
-    // {
-    //     printf("\narquivo::gravar_fragmento: Falha na escrita do arquivo.\n\n");
+    if (fwrite(buffer->dados_fragmentos, sizeof(byte), qtd_bytes_para_gravar, arquivo_destino) != 1)
+    {
+        printf("[[ERRO]] Falha na escrita do arquivo. [gerenciar_buffers::gravar_buffer_disco]\n\n");
 
-    //     return false;
-    // }
+        return false;
+    }
 
     return true;
+}
+
+void completar_arquivo(info_compartilhada_t *info_compartilhada, info_arquivos_t *info_arquivos, const unsigned id_usuario, const unsigned id_arquivo, buffer_t *buffer)
+{
+    bool usuario_completo = false;
+
+    trancar_info_arquivos(info_arquivos);
+
+    mudar_arquivo_para_completo(info_arquivos, id_usuario, id_arquivo);
+
+    if (info_arquivos->n_completos == info_arquivos->n_arquivos) usuario_completo = true;
+
+    destrancar_info_arquivos(info_arquivos);
+
+    if (usuario_completo == true)
+    {
+        novo_usuario_finalizado(info_compartilhada);
+    }
+
+    for (unsigned i_usuario = 0; i_usuario < info_compartilhada->n_usuarios; ++i_usuario)
+    {
+        enviar_mensagem_arquivo_completo(info_compartilhada, id_usuario, id_arquivo, i_usuario);
+    }
+
+    // TODO: Finalizar buffer. É mais difícil do que parece, por causa do mutex de buffer. Inclusive, ele está trancado neste momento.
 }

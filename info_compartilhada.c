@@ -70,6 +70,20 @@ unsigned obter_id_prox_usuario(info_compartilhada_t *info_compartilhada)
     return resultado;
 }
 
+void novo_usuario_finalizado(info_compartilhada_t *info_compartilhada)
+{
+    pthread_mutex_lock(&info_compartilhada->mutex_n_usuarios_finalizados);
+
+    --info_compartilhada->n_usuarios_finalizados;
+
+    pthread_mutex_unlock(&info_compartilhada->mutex_n_usuarios_finalizados);
+
+    if (info_compartilhada->n_usuarios_finalizados == info_compartilhada->n_usuarios)
+    {
+        info_compartilhada->finalizar_execucao = true;
+    }
+}
+
 void enviar_solicitacao_arquivo(info_compartilhada_t *info_compartilhada, const unsigned usuario_fonte, const unsigned id_arquivo, const unsigned usuario_destino)
 {
     // Tratamento de erros.
@@ -107,6 +121,45 @@ void enviar_solicitacao_arquivo(info_compartilhada_t *info_compartilhada, const 
     requisicao->id_usuario = usuario_fonte;
 
     adicionar_elemento_lista_mensagem(&info_compartilhada->solicitacoes_arquivo[usuario_destino], requisicao);
+}
+
+void enviar_mensagem_arquivo_completo(info_compartilhada_t *info_compartilhada, const unsigned usuario_fonte, const unsigned id_arquivo, const unsigned usuario_destino)
+{
+    // Tratamento de erros.
+    if (usuario_fonte == usuario_destino)
+    {
+        printf("[[ERRO]] Usuario %u enviou mensagem do arquivo %u completo para si mesmo.[info_compartilhada::enviar_mensagem_arquivo_completo]\n\n", usuario_fonte+1, id_arquivo+1);
+
+        return;
+    }
+
+    if (usuario_fonte >= info_compartilhada->n_usuarios)
+    {
+        printf("[[ERRO]] Mensagem de arquivo completo pelo usuario %u, mas existem apenas %u usuarios.[info_compartilhada::enviar_mensagem_arquivo_completo]\n\n", usuario_fonte+1, info_compartilhada->n_usuarios);
+
+        return;
+    }
+
+    if (usuario_destino >= info_compartilhada->n_usuarios)
+    {
+        printf("[[ERRO]] Mensagem de arquivo completo enviada ao usuario %u, mas existem apenas %u usuarios.[info_compartilhada::enviar_mensagem_arquivo_completo]\n\n", usuario_destino+1, info_compartilhada->n_usuarios);
+
+        return;
+    }
+
+    if (id_arquivo >= info_compartilhada->n_arquivos)
+    {
+        printf("[[ERRO]] Mensagem de arquivo completo com id %u, mas existem apenas %u arquivos.[info_compartilhada::enviar_mensagem_arquivo_completo]\n\n", id_arquivo+1, info_compartilhada->n_arquivos);
+
+        return;
+    }
+    // Fim do tratamento de erros.
+
+    par_usuario_arquivo_t *mensagem = (par_usuario_arquivo_t *) calloc(1, sizeof(par_usuario_arquivo_t));
+    mensagem->id_arquivo = id_arquivo;
+    mensagem->id_usuario = usuario_fonte;
+
+    adicionar_elemento_lista_mensagem(&info_compartilhada->solicitacoes_arquivo[usuario_destino], mensagem);
 }
 
 bool criar_buffer(info_compartilhada_t *info_compartilhada, const unsigned id_usuario, const unsigned id_arquivo)
@@ -174,7 +227,7 @@ bool finalizar_buffer(info_compartilhada_t *info_compartilhada, const unsigned i
         return false;
     }
 
-    free(buffer_arquivo);
+    destruir_buffer(buffer_arquivo);
 
     info_compartilhada->buffers_usuarios[id_arquivo][id_arquivo] = NULL;
 

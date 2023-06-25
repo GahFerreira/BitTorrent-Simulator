@@ -63,12 +63,16 @@ void inicializar_info_compartilhada(info_compartilhada_t *info_compartilhada, co
 
 unsigned obter_id_prox_usuario(info_compartilhada_t *info_compartilhada);
 
+void novo_usuario_finalizado(info_compartilhada_t *info_compartilhada);
+
 /*
     O `usuario_fonte` envia uma mensagem ao `usuario_destino` pedindo o arquivo cujo id é `id_arquivo`.
 
     Nota: aloca memória, que deverá ser liberada ao processar a mensagem.
 */
 void enviar_solicitacao_arquivo(info_compartilhada_t *info_compartilhada, const unsigned usuario_fonte, const unsigned id_arquivo, const unsigned usuario_destino);
+
+void enviar_mensagem_arquivo_completo(info_compartilhada_t *info_compartilhada, const unsigned usuario_fonte, const unsigned id_arquivo, const unsigned usuario_destino);
 
 bool criar_buffer(info_compartilhada_t *info_compartilhada, const unsigned id_usuario, const unsigned id_arquivo);
 bool finalizar_buffer(info_compartilhada_t *info_compartilhada, const unsigned id_usuario, const unsigned id_arquivo);

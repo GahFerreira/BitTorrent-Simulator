@@ -32,6 +32,11 @@ buffer_t *construir_buffer(const unsigned n_fragmentos, const unsigned tam_fragm
     return novo_buffer;
 }
 
+void destruir_buffer(buffer_t *buffer)
+{
+    free(buffer);
+}
+
 void trancar_buffer(buffer_t *buffer)
 {
     pthread_mutex_lock(&buffer->mutex_buffer);
@@ -50,7 +55,7 @@ void informar_dados_arquivo(buffer_t *buffer, const unsigned tam_arquivo, const 
     buffer->dados_arquivo_obtidos = true;
 }
 
-void atualizar_buffer(buffer_t *buffer)
+bool atualizar_buffer(buffer_t *buffer)
 {
     if (buffer->primeira_execucao == true)
     {
@@ -66,9 +71,12 @@ void atualizar_buffer(buffer_t *buffer)
         Importante para os fragmentos finais, que podem não encher completamente o buffer.
     */
     const unsigned n_bytes_ja_gravados = buffer->id_primeiro_fragmento_atual * buffer->tam_fragmento;
-    const unsigned n_bytes_para_gravar = buffer->tam_arquivo - n_bytes_ja_gravados;
 
-    buffer->n_fragmentos_ausentes = n_bytes_para_gravar / buffer->tam_fragmento;
+    if (n_bytes_ja_gravados >= buffer->tam_arquivo) return true;
+
+    const unsigned n_bytes_restantes_para_gravar = buffer->tam_arquivo - n_bytes_ja_gravados;
+
+    buffer->n_fragmentos_ausentes = n_bytes_restantes_para_gravar / buffer->tam_fragmento;
 
     if (buffer->n_fragmentos_ausentes > buffer->n_fragmentos)
     {
@@ -79,6 +87,8 @@ void atualizar_buffer(buffer_t *buffer)
     {
         adicionar_id_fragmento_necessario_na_lista(buffer, buffer->id_primeiro_fragmento_atual + i_fragmento_ausente);
     }
+
+    return false;
 }
 
 void adicionar_id_fragmento_necessario_na_lista(buffer_t *buffer, const unsigned id_fragmento)
@@ -103,4 +113,14 @@ void gravar_fragmento(buffer_t *buffer, const unsigned id_fragmento, byte fragme
     memcpy(&acessar_fragmento(buffer, id_fragmento), fragmento, sizeof(byte) * buffer->tam_fragmento);
 
     --buffer->n_fragmentos_ausentes;
+}
+
+unsigned obter_quantidade_bytes_para_gravar(buffer_t *buffer)
+{
+    const unsigned n_bytes_ja_gravados = buffer->id_primeiro_fragmento_atual * buffer->tam_fragmento;
+    const unsigned n_bytes_restantes_para_gravar = buffer->tam_arquivo - n_bytes_ja_gravados;
+    const unsigned tamanho_buffer_cheio = buffer->n_fragmentos * buffer->tam_fragmento;
+
+    if (n_bytes_restantes_para_gravar < tamanho_buffer_cheio) return n_bytes_restantes_para_gravar;
+    return tamanho_buffer_cheio;
 }

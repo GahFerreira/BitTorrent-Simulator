@@ -176,7 +176,10 @@ void checar_solicitacoes_arquivo(info_total_t *info_total, lista_mensagem_t *sol
             printf("[DEBUG-3] Usuario %u tem o arquivo %u COMPLETO que o usuario %u solicitou.\n\n", id_usuario+1, solicitacao_arquivo->id_arquivo+1, solicitacao_arquivo->id_usuario+1);
             #endif
 
+            // Adiciona a tarefa de ajudar ao usuário solicitante com o arquivo solicitado.
             adicionar_tarefa(&info_total->info_usuario->lista_tarefas, id_usuario, solicitacao_arquivo->id_usuario, solicitacao_arquivo->id_arquivo);
         }
+
+        free((par_usuario_arquivo_t *) solicitacao_arquivo);
     }
 }

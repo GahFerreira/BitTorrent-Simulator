@@ -35,7 +35,7 @@ void *iniciar_usuario(info_compartilhada_t *info_compartilhada)
     info_total.info_compartilhada = info_compartilhada;
     info_total.info_usuario = &info_usuario;
 
-    pthread_t th_processar_mensagens, th_solicitar_arquivos, th_gerenciar_buffers; //th_enviar_fragmentos;
+    pthread_t th_processar_mensagens, th_solicitar_arquivos, th_gerenciar_buffers, th_enviar_fragmentos;
 
     pthread_create(&th_processar_mensagens, NULL, (void * (*) (void *)) processar_mensagens_recebidas, (void *) &info_total);
 
@@ -43,9 +43,12 @@ void *iniciar_usuario(info_compartilhada_t *info_compartilhada)
 
 	pthread_create(&th_gerenciar_buffers, NULL, (void * (*) (void *)) gerenciar_buffers, (void *) &info_total);
 
+	//pthread_create(&th_enviar_fragmentos, NULL, (void * (*) (void *)) enviar_fragmentos, (void *) &info_total);
+
     pthread_join(th_processar_mensagens, NULL);
     pthread_join(th_solicitar_arquivos, NULL);
     pthread_join(th_gerenciar_buffers, NULL);
+    //pthread_join(th_enviar_fragmentos, NULL);
 
     meu_sleep(3000);
 

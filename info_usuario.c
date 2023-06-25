@@ -295,19 +295,30 @@ bool mudar_arquivo_para_em_progresso(info_arquivos_t *info_arquivos, const unsig
         return false;
     }
 
-    trancar_info_arquivos(info_arquivos);
-
     --info_arquivos->n_vazios;
     ++info_arquivos->n_em_progresso;
 
     info_arquivos->estado_arquivos[id_arquivo] = EM_PROGRESSO;
 
-    destrancar_info_arquivos(info_arquivos);
-
     return true;
 }
 
-// bool arquivo_para_completo();
+bool mudar_arquivo_para_completo(info_arquivos_t *info_arquivos, const unsigned id_usuario, const unsigned id_arquivo)
+{
+    if (obter_estado_arquivo(info_arquivos, id_arquivo) != EM_PROGRESSO)
+    {
+        printf("[[ERRO]] Tentativa de mudar arquivo %u do usuario %u para COMPLETO, mas o arquivo nao esta EM_PROGRESSO. [info_usuario::mudar_arquivo_para_em_progresso]\n\n", id_arquivo+1, id_usuario+1);
+
+        return false;
+    }
+
+    --info_arquivos->n_em_progresso;
+    ++info_arquivos->n_completos;
+
+    info_arquivos->estado_arquivos[id_arquivo] = COMPLETO;
+
+    return true;
+}
 
 void adicionar_tarefa(lista_mensagem_t *lista_tarefa, const unsigned id_usuario, const unsigned id_usuario_tarefa, const unsigned id_arquivo_tarefa)
 {
