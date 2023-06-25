@@ -2,6 +2,7 @@
 #define BUFFER_H
 
 #include <pthread.h>
+#include <limits.h> // UINT_MAX
 
 #include "lista_mensagem.h"
 

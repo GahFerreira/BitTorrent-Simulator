@@ -24,26 +24,26 @@ void *enviar_fragmentos(info_total_t *info_total)
             // Acessa e tranca o buffer do usuário se ele não estiver trancado.
             if ( tentar_trancar_buffer(buffer_usuario_arquivo) == true )
             {
-            //     // Obtém o id de um fragmento do arquivo da tarefa.
-            //     const unsigned id_fragmento = obter_id_fragmento_necessario(buffer_usuario_arquivo);
+                // Obtém o id de um fragmento do arquivo da tarefa.
+                const unsigned id_fragmento = obter_id_fragmento_necessario(buffer_usuario_arquivo);
 
-            //     if (id_fragmento == INVALIDO)
-            //     {
-            //         destrancar_buffer(buffer_usuario_arquivo);
-            //         continue;
-            //     }
+                if (id_fragmento == INVALIDO)
+                {
+                    destrancar_buffer(buffer_usuario_arquivo);
+                    continue;
+                }
 
-            //     const unsigned n_bytes_para_ler = obter_quantidade_bytes_para_ler(buffer_usuario_arquivo, id_fragmento);
+                const unsigned n_bytes_para_ler = obter_quantidade_bytes_para_ler(buffer_usuario_arquivo, id_fragmento);
 
                 destrancar_buffer(buffer_usuario_arquivo);
 
-            //     byte fragmento[n_bytes_para_ler];
+                byte fragmento[n_bytes_para_ler];
 
-            //     // Lê o fragmento do arquivo no disco.
-            //     if ( obter_fragmento_disco(info_total->info_usuario->manipulador_arquivos.ponteiro_arquivos[tarefa.id_arquivo], id_fragmento, info_total->info_compartilhada->tam_fragmento, n_bytes_para_ler, fragmento) == false )
-            //     {
-            //         printf("[[ERRO]] Falha na leitura do disco do fragmento %u do arquivo %u do usuario %u. [enviar_fragmentos::enviar_fragmentos]\n\n", id_fragmento, tarefa.id_arquivo+1, id_usuario+1);
-            //     }
+                // Lê o fragmento do arquivo no disco.
+                if ( obter_fragmento_disco(info_total->info_usuario->manipulador_arquivos.ponteiro_arquivos[tarefa.id_arquivo], id_fragmento, info_total->info_compartilhada->tam_fragmento, n_bytes_para_ler, fragmento) == false )
+                {
+                    printf("[[ERRO]] Falha na leitura do disco do fragmento %u do arquivo %u do usuario %u. [enviar_fragmentos::enviar_fragmentos]\n\n", id_fragmento, tarefa.id_arquivo+1, id_usuario+1);
+                }
 
             //     trancar_buffer(buffer_usuario_arquivo);
 
